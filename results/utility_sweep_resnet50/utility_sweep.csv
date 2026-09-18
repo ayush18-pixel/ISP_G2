@@ -1,0 +1,4 @@
+aggregation_normalizer,clip_norm,delta,device,epsilon_actual,epsilon_target,local_epochs,model,noise_multiplier,population_size,regime,rounds,runtime_seconds,sample_rate,samples_per_client,seed,test_accuracy,test_loss,torch_version,validity_status
+10.0,1.0,1e-05,cuda,31.99999999999999,32.0,2,groupnorm_resnet50,0.8562917311157217,20,COLLAPSE,40,105.28,0.5,100,20260918,0.09000000357627869,10.703115463256836,2.5.1+cu121,INVALID
+10.0,1.0,1e-05,cuda,7.999999999999988,8.0,2,groupnorm_resnet50,2.2149141120517397,20,COLLAPSE,40,106.611,0.5,100,20260918,0.09799999743700027,90.8003921508789,2.5.1+cu121,INVALID
+,1.0,,cuda,inf,inf,2,groupnorm_resnet50,0.0,20,COLLAPSE,40,98.069,0.5,100,20260918,0.1459999978542328,2.366729974746704,2.5.1+cu121,INVALID

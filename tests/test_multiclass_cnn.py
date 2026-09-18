@@ -128,3 +128,14 @@ def test_groupnorm_resnet18_factory_has_cifar_multiclass_shape() -> None:
     assert not any(isinstance(module, torch.nn.BatchNorm2d) for module in model.modules())
     logits = model(torch.randn(2, 3, 32, 32))
     assert logits.shape == (2, 10)
+
+
+def test_groupnorm_resnet50_factory_has_cifar_multiclass_shape() -> None:
+    from dp_forgetbench.federated import make_model
+    from dp_forgetbench.models import GroupNormResNet50
+
+    model = make_model({"name": "groupnorm_resnet50", "num_classes": 10, "base_width": 16}, None)
+    assert isinstance(model, GroupNormResNet50)
+    assert not any(isinstance(module, torch.nn.BatchNorm2d) for module in model.modules())
+    logits = model(torch.randn(2, 3, 32, 32))
+    assert logits.shape == (2, 10)

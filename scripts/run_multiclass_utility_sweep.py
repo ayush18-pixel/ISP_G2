@@ -61,7 +61,7 @@ def run(config_path: Path, output_dir: Path | None = None) -> list[dict]:
     if bool(config.get("execution", {}).get("require_cuda", False)) and device.type != "cuda":
         raise RuntimeError(
             f"CUDA is required for this sweep, but the active device is {device}. "
-            "Select a Colab T4 runtime, reconnect, rerun the GPU check, and retry."
+            "Ensure an NVIDIA GPU, updated drivers, and a CUDA-enabled PyTorch build are installed."
         )
     records: list[dict] = []
 

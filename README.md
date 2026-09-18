@@ -1,237 +1,482 @@
-# DP-ForgetBench: A Privacy-Aligned Audit of Federated Unlearning
+# DP-ForgetBench
 
-**When is explicit client unlearning redundant? A privacy-aligned audit of differentially private federated learning.**
+## Project Purpose
 
-This repository builds a rigorous, reproducible benchmark for client deletion in federated learning (FL). The core objective is not to claim that Differential Privacy (DP) perfectly deletes data, nor is it to inflate exploratory metrics to claim "State-of-the-Art" (SOTA). 
+DP-ForgetBench is a research benchmark for studying the relationship between
+client-level differential privacy and federated unlearning.
 
-The goal is sharper and more scientifically grounded: **To compare DP-only model release, explicit federated unlearning baselines, and exact retraining references under a privacy contract where the unit of privacy matches the unit of the deletion request.**
+The central question is:
 
----
+> When a federated learning model was already trained with client-level
+> differential privacy, does an explicit client-unlearning algorithm still add
+> measurable value after a deletion request?
 
-## 🚀 Phase 2 Major Upgrades & Current Status
+This project does not assume that differential privacy is the same thing as
+deletion. It also does not assume that unlearning is always unnecessary. The
+project instead treats both ideas as competing scientific hypotheses and tests
+them against an exact retraining reference.
 
-In the most recent phase of development, the DP-ForgetBench execution pipeline was dramatically upgraded to solve critical blockers and formalize the evaluation framework. 
+The benchmark asks whether, for a given privacy budget, model quality, data
+heterogeneity, and deletion size, doing nothing to a differentially private
+model is statistically indistinguishable from retraining the model without the
+deleted client.
 
-### 1. Architecture & Convergence Fixes
-* **The Problem:** Early CIFAR-10 experiments under DP-FL collapsed to chance-level accuracy (~10%).
-* **The Fix:** We audited the model and found a flaw in `SmallGroupNormCNN` where aggressive `AdaptiveAvgPool2d((1, 1))` pooling was destroying spatial features. This was replaced with `Flatten(1)`.
-* **DP Hyperparameter Sweep:** We systematically swept DP hyperparameters and scaled the population size to $N=100$ clients ($20,000$ samples) with `noise_multiplier=0.5`. The model now successfully learns under strict client-level DP, achieving **>54% accuracy** and breaking the random-chance plateau.
+The goal is to map the boundary where explicit unlearning is useful, redundant,
+or harmful.
 
-### 2. Retrain Ensemble & Validity Gating
-* **Retrain Variability:** A single target retrain ($M_R$) is too statistically noisy to serve as the ground-truth "gold standard" for unlearning. We implemented **Retrain Ensembles**, where the pipeline automatically trains $N$ independent target retrains using different random seeds to form an empirical distribution of retrain variability.
-* **Validity Gate Layer:** The execution pipeline (`run.py`) now includes an automated validity check. If the median test accuracy of the retrain ensemble falls below a threshold (e.g., 40%), the run is explicitly flagged as `INVALID`.
+## Why This Question Matters
 
-### 3. Formalizing Redundancy: Marginal Unlearning Benefit (MUB)
-We formalized the definition of redundancy by introducing the **Marginal Unlearning Benefit (MUB)**. 
-Calculated via `scripts/aggregate_mub.py` with true **95% Bootstrap Confidence Intervals** across the target retrain ensemble, MUB measures the exact gain of applying an explicit unlearning algorithm over doing nothing (DP-only).
-* **Utility MUB:** Does unlearning bring test accuracy closer to the retrain ensemble?
-* **Alignment MUB:** Does unlearning match the predictive behavior of the retrain ensemble better than DP-only? (Measured via Jensen-Shannon Divergence).
-* **Privacy MUB:** Does unlearning reduce the Membership Inference Attack (MIA) advantage?
+Federated learning trains a model across many clients without centralizing raw
+client data. This makes it attractive for privacy-sensitive domains, but it
+creates a difficult deletion problem.
 
-The output pipeline embeds a **4-way redundancy multi-criterion classifier** (`REDUNDANT`, `UNLEARNING-BENEFICIAL`, `UNLEARNING-HARMFUL`, `INCONCLUSIVE`) strictly based on equivalence to the retrain variability bounds.
+If a client later asks to be removed, the trained model may still contain some
+statistical influence from that client's local data. One obvious answer is exact
+retraining: train a new model from scratch using all retained clients and
+excluding the deleted client. Exact retraining is conceptually clean, but it is
+expensive.
 
----
+Federated unlearning algorithms try to approximate exact retraining more cheaply.
+They may use historical client updates, retained-client fine-tuning, server-side
+reconstruction, or interactive calibration. These methods can be useful, but
+they often introduce large storage costs, require extra communication, and may
+query retained clients again after deletion.
 
-## 🔬 The Evaluation Framework
+Differential privacy changes the picture. If training already included
+client-level differential privacy, then the final released model has a formal
+bound on how much any single client's inclusion can affect the output
+distribution. That does not automatically mean the client has been deleted, but
+it raises a serious empirical question:
 
-The benchmark rigorously evaluates three distinct outcomes for every configuration:
+If the deleted client's influence is already smaller than normal retraining
+variation, does explicit unlearning buy anything measurable?
 
-1. **$M_{DP}$ (DP-Only / No Action):** A model trained on all data with client-level DP, left completely unchanged after a deletion request.
-2. **$M_U$ (Explicit Unlearning):** The model obtained by applying a specific federated unlearning algorithm after the deletion request.
-3. **$M_R$ (Exact Retrain):** The gold-standard models, trained from scratch on the dataset *without* the deleted client's data.
+DP-ForgetBench is built to answer that question experimentally and carefully.
 
-By comparing $M_U$ and $M_{DP}$ against the $M_R$ ensemble, we can map the **Redundancy Frontier**—the specific combinations of privacy budget ($\epsilon$), data heterogeneity ($\alpha$), and deletion size where explicit unlearning adds material benefit vs. where it is statistically redundant.
+## What We Compare
 
----
+Every meaningful experiment is organized around three conceptual model families.
 
-## 🔒 The Privacy Rule: Client-Level DP
+### 1. DP-only / No Action
 
-The primary experiment utilizes **client-level central DP**:
-* Whole client updates are L2-clipped.
-* Gaussian noise is added to the aggregate at the server.
-* The DP accountant strictly tracks client-sampling privacy loss. 
+This model is trained on the full client population with client-level
+differential privacy. After a deletion request arrives, the model is left
+unchanged.
 
-*Note: Example-level DP-SGD belongs only to a separate record-deletion control and must never be conflated with client-level removal guarantees.*
+This is the simplest possible response. It has no unlearning compute, no extra
+client communication, no historical-update storage, and no additional access to
+raw retained data.
 
----
+The scientific question is whether this no-action model is already close enough
+to the exact retrain reference under the chosen privacy regime.
 
-## 🛠️ Quick Start Guide
+### 2. Explicit Unlearning
 
-Python 3.10-3.13 is supported.
+These methods modify or reconstruct a model after deletion. The benchmark has
+included several unlearning baselines:
 
-### 1. Installation
+- Retained-data fine-tuning.
+- Cached update reconstruction.
+- FedEraser-style historical reconstruction and calibration.
+- Exact retraining as a gold-standard reference, not as a practical shortcut.
+
+These baselines are evaluated by how close they get to exact retraining, how
+much membership leakage they reduce, and how much compute, storage, and client
+interaction they require.
+
+### 3. Exact Retrain Reference
+
+Exact retraining is the clean reference: train from scratch on the retained
+client population after removing the deleted client.
+
+A key design decision in this project is that exact retraining is not treated as
+a single model. One retrain can be noisy because random initialization, client
+sampling, and stochastic optimization all create natural variation. Therefore the
+project uses a retrain ensemble across multiple seeds. The ensemble gives a
+distribution of plausible retrained models.
+
+This matters because unlearning should not be judged against a single lucky or
+unlucky retrain. It should be judged against the natural variability of retrain
+itself.
+
+## Core Scientific Idea
+
+The benchmark is built around this principle:
+
+> A deletion effect is meaningful only if it is larger than ordinary retraining
+> noise.
+
+If deleting a client changes the model less than changing the random seed during
+retraining, then a claim that an unlearning method improves deletion quality is
+weak. The method may simply be chasing randomness.
+
+To formalize this, the project compares:
+
+- The distance between the full model and retrain models.
+- The distance between unlearned models and retrain models.
+- The natural spread inside the retrain ensemble itself.
+
+When the DP-only model falls inside the retrain ensemble's variability band,
+explicit unlearning is classified as redundant for that setting.
+
+When the unlearned model is clearly closer to retrain than DP-only, unlearning is
+classified as beneficial.
+
+When unlearning moves away from retrain or damages utility, it is harmful.
+
+When the evidence is too noisy, the result is inconclusive.
+
+## Marginal Unlearning Benefit
+
+The project uses Marginal Unlearning Benefit, or MUB, to measure whether
+explicit unlearning improves over DP-only.
+
+MUB is not one metric. It is a framework for asking three related questions.
+
+### Utility MUB
+
+Does explicit unlearning produce test accuracy closer to the retrain ensemble
+than DP-only?
+
+This matters because an unlearning method that destroys model utility is not a
+good deletion solution, even if it reduces membership signals.
+
+### Alignment MUB
+
+Does explicit unlearning make the model's predictions behave more like exact
+retraining?
+
+The project uses prediction-distribution distances such as Jensen-Shannon
+divergence to measure behavioral alignment. This is stricter than accuracy
+alone. Two models can have similar accuracy while making different predictions.
+
+### Privacy MUB
+
+Does explicit unlearning reduce membership inference attack advantage on the
+forgotten population beyond what DP-only already provides?
+
+This matters because client deletion is partly about reducing remaining evidence
+that the forgotten client participated in training.
+
+## Validity Gates
+
+A major lesson from the project is that unlearning claims are meaningless if the
+model never learned the task.
+
+For CIFAR-10, random guessing is about 10 percent accuracy. If a private model is
+near random chance, a low membership inference signal does not prove successful
+unlearning. It may only prove the model is useless.
+
+Therefore the benchmark uses validity gates:
+
+- INVALID: accuracy below 25 percent.
+- WARNING: accuracy from 25 percent to below 40 percent.
+- VALID: accuracy at or above 40 percent.
+
+Only healthy or at least marginally useful models should be used for serious
+claims about the redundancy frontier.
+
+## Privacy Contract
+
+The primary privacy contract is client-level central differential privacy.
+
+That means:
+
+- The protected unit is one complete client, not one image or one row.
+- Client updates are clipped before aggregation.
+- Gaussian noise is added at the server.
+- Client sampling is accounted for using a Poisson-subsampled Gaussian mechanism.
+- The released object is the final model.
+- The privacy ledger records epsilon, delta, sampling rate, clipping norm, noise
+  multiplier, population size, and release count.
+
+This is important because client deletion is also a client-level request. The
+privacy unit and the deletion unit must match.
+
+Example-level DP and client-level DP answer different questions. This project is
+mainly about client-level removal in federated learning.
+
+## Why FedEraser Is Treated Carefully
+
+FedEraser-style methods are important because they represent a serious
+historical-update-based approach to federated unlearning.
+
+However, the project treats FedEraser carefully because it is not simply free
+post-processing of a DP model.
+
+FedEraser-style calibration can require retained clients to receive intermediate
+models and compute new updates on their raw local data. That means the method
+performs fresh data-dependent access after the original model was trained.
+
+This has two consequences:
+
+- It can require additional privacy accounting.
+- It can be much more expensive than DP-only no action.
+
+The benchmark therefore compares FedEraser not only by accuracy and attack
+metrics, but also by storage, communication, and privacy category.
+
+## What Has Been Done So Far
+
+### Phase 0: Synthetic Verification
+
+The project began with a small synthetic federated setting. This phase was used
+to verify the basic privacy accounting, deletion handling, deterministic
+experiments, and end-to-end result writing.
+
+This phase established that the benchmark could produce reproducible metrics,
+privacy ledgers, deletion manifests, and experiment metadata.
+
+### Phase 1: Real CIFAR-10 Binary Pipeline
+
+The next step moved from synthetic data to CIFAR-10 in a CPU-feasible binary
+classification setting.
+
+This phase validated:
+
+- Public dataset loading.
+- Deterministic client partitioning.
+- Client deletion manifests.
+- Privacy accounting on real data.
+- Basic membership inference probes.
+- Exact retraining references.
+
+The goal was not high image accuracy. The goal was to prove that the real-data
+pipeline behaved correctly before moving to harder multiclass CNN experiments.
+
+### Phase 2: CIFAR-10 Multiclass CNN
+
+The benchmark then moved to 10-class CIFAR-10 with image tensors and convolutional
+models.
+
+Early experiments collapsed near chance. The main architecture issue was that an
+early CNN used aggressive global pooling that destroyed too much spatial
+information. Replacing that spatial bottleneck with a flattened classifier head
+allowed the model to learn.
+
+After this correction, the small GroupNorm CNN became a useful control model for
+studying convergence, privacy noise, and the utility frontier.
+
+### Positive Controls
+
+Positive controls were added to prove that the data and model could learn before
+making privacy or unlearning claims.
+
+The important positive-control logic was:
+
+- If centralized training cannot learn, the architecture or data pipeline is
+  broken.
+- If non-private FedAvg cannot learn, the federated optimization setup is broken.
+- If deleting a deliberately influential client causes no measurable change, the
+  unlearning evaluation is not sensitive enough.
+
+These controls helped separate real privacy effects from simple training failure.
+
+### Retrain Ensembles
+
+The project moved from single retrain references to retrain ensembles.
+
+This was a major scientific upgrade. It prevents over-interpreting the distance
+to one retrained model. The ensemble gives a realistic band of retraining
+variation, which is then used to judge whether DP-only or unlearning is actually
+close to retrain.
+
+### Marginal Unlearning Benefit
+
+The project formalized MUB so unlearning benefit can be measured relative to
+DP-only.
+
+This changed the question from:
+
+"Does unlearning change the model?"
+
+to:
+
+"Does unlearning improve over doing nothing, relative to exact retraining?"
+
+That is the central benchmark question.
+
+### Full Baseline Suite
+
+The benchmark now includes:
+
+- DP-only no action.
+- Retained-data fine-tuning.
+- Cached update reconstruction.
+- FedEraser-style reconstruction and calibration.
+- Exact retrain ensembles.
+
+This gives a broad comparison across utility, alignment, privacy leakage,
+storage, communication, and runtime.
+
+### Utility Frontier Work
+
+The project has explored the boundary between useful DP models and collapsed DP
+models.
+
+The observed regimes are:
+
+- Low epsilon can collapse CIFAR-10 utility.
+- Intermediate epsilon can produce marginal but useful models.
+- High epsilon or non-private training gives stronger utility but weaker privacy.
+
+The key scientific challenge is to find settings where the model is useful and
+DP is strong enough that client influence is masked.
+
+### ResNet-50 Upgrade
+
+The latest upgrade adds a stronger CIFAR-sized GroupNorm ResNet-50 model.
+
+The reason is simple: if DP noise hurts learning, a stronger architecture may
+recover more useful accuracy under the same privacy accounting. ResNet-50 is now
+available as `groupnorm_resnet50` and has its own utility sweep configs.
+
+The model uses GroupNorm instead of BatchNorm because BatchNorm depends on batch
+statistics, which are awkward in federated and privacy-sensitive settings.
+GroupNorm keeps normalization independent of client-local batch statistics.
+
+The project still keeps ResNet-18 and the small CNN as lower-cost controls.
+
+## Current Status
+
+At this point, the repository has:
+
+- A deterministic experiment framework.
+- Synthetic and real-data federation backends.
+- Client-level DP accounting.
+- Deletion manifests.
+- Exact retrain references.
+- Retrain ensembles.
+- Multiple unlearning baselines.
+- Membership inference audits.
+- MUB-based redundancy classification.
+- Validity gates for avoiding false claims from collapsed models.
+- A GroupNorm ResNet-50 path for stronger local CIFAR-10 experiments.
+
+The immediate next step is to run the ResNet-50 utility smoke and then the full
+ResNet-50 DP utility sweep locally. The smoke verifies that the real CIFAR-10
+loader and training path work on this machine. The full sweep is the meaningful
+accuracy experiment.
+
+## Local Testing Workflow
+
+This repository is currently set up for local testing, not Colab-first testing.
+
+From the repository root:
+
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pytest -q -p no:cacheprovider
 ```
 
-### 2. Run a Deterministic Smoke Test
+The `-p no:cacheprovider` flag avoids local Windows permission issues with
+pytest cache directories.
+
+To run a tiny local ResNet-50 federated smoke without touching CIFAR-10:
+
 ```powershell
-python -m dp_forgetbench.run --config configs/phase0_toy.yaml --mode full
+$env:PYTHONPATH = "src"
+python -c "import torch; from dp_forgetbench.data import ClientDataset; from dp_forgetbench.federated import train_federated, evaluate_loss_accuracy; clients={i: ClientDataset(i, torch.randn(4,3,32,32), torch.randint(0,10,(4,))) for i in range(3)}; model,cost=train_federated(clients=clients,n_features=None,federated_config={'rounds':1,'local_epochs':1,'local_batch_size':2,'learning_rate':0.01,'client_sample_rate':1.0},privacy_config={'enabled':False},seed=1,model_config={'name':'groupnorm_resnet50','num_classes':10,'base_width':8}); print(type(model).__name__, cost.as_dict()); print(evaluate_loss_accuracy(model, torch.randn(5,3,32,32), torch.randint(0,10,(5,))))"
 ```
 
-### 3. Execute the Phase 2 DP Sweep & Pilot
-To run the validated configuration that achieves >54% accuracy under client-level DP:
+This does not measure real accuracy. It only proves that the ResNet-50 model can
+instantiate, train through the federated loop, and evaluate locally.
+
+## Local ResNet-50 Training Workflow
+
+For a quick real CIFAR-10 smoke test:
+
 ```powershell
-python scripts/run_dp_sweep.py
-# Or run the pilot directly:
-python -m dp_forgetbench.run --config configs/phase2_private_pilot.yaml --mode full
+python scripts/run_multiclass_utility_sweep.py --config configs/multiclass_resnet50_t4_smoke.yaml --output-dir results/local_resnet50_smoke
 ```
 
-### 4. Validate Artifacts
-To check if a run passed the Validity Gate (accuracy >40%):
+For the full ResNet-50 DP utility sweep:
+
 ```powershell
-python scripts/validate_artifact.py results\<run-dir>
+python scripts/run_multiclass_utility_sweep.py --config configs/multiclass_resnet50_utility_sweep.yaml
 ```
 
-### 5. Generate Documentation PDFs
-```powershell
-python scripts/build_pdf.py RESEARCH_GRADE_PLAN.md reports/RESEARCH_GRADE_PLAN.pdf
-python scripts/build_pdf.py README.md reports/README.pdf
-```
-
----
-
-## 📁 Repository Layout
+The full sweep writes:
 
 ```text
-configs/                 Immutable YAML experiment configurations (sweeps, pilots, grids)
-docs/                    Protocol and threat-model documentation
-partitions/              Versioned deletion manifests generated by runs
-reports/                 PDFs, result summaries, validity notices
-results/                 Raw experiment outputs (metrics, privacy ledgers, metadata)
-scripts/                 Grid generation, validation, MUB aggregation, and PDF helpers
-src/dp_forgetbench/      Core Benchmark Implementation (FL, DP, Unlearning, Evaluation)
-tests/                   Pytest suite for determinism, privacy, deletion, and smoke testing
+results/utility_sweep_resnet50/utility_sweep.csv
+results/utility_sweep_resnet50/utility_sweep.json
 ```
 
-## 📊 What Each Run Outputs
+The most important fields are:
 
-Inside every result directory under `results/`, the framework securely logs:
-* `metrics.json`: Utility, deleted/retained metrics, JS alignment, attack diagnostics, and computational cost.
-* `privacy_ledger.json`: The exact DP mechanism, $\epsilon$, $\delta$, sampling rate, and release counts (mathematically validated in Phase 6).
-* `run_metadata.json`: Configuration hashes, runtime details, deletion manifest checksums, and reference configs.
+- `epsilon_target`
+- `epsilon_actual`
+- `noise_multiplier`
+- `rounds`
+- `local_epochs`
+- `test_accuracy`
+- `validity_status`
+- `runtime_seconds`
 
----
+If the run is marked INVALID, it should not be used for unlearning claims.
 
----
+## Important Local Data Note
 
-## 🌟 Phases 7–11: Scientific Validation, Baselines & Frontier Discovery
+The real CIFAR-10 smoke and full sweep need a readable and writable CIFAR-10 data
+directory.
 
-All core methodologies, established federated-unlearning baselines (including **FedEraser**), calibrated privacy audits, and execution frameworks are now implemented, tested, and validated.
+On this machine, the existing `data/cifar-10-batches-py` directory may have
+Windows permission problems. If the real-data smoke fails with `PermissionError`,
+the code path is not necessarily broken. The local dataset directory needs to be
+fixed, deleted and re-extracted, or replaced with a fresh readable copy.
 
-### 1. The Federated Unlearning Baseline Suite (Phase 9)
+The in-memory ResNet-50 smoke avoids this dataset issue and is useful for testing
+the model and federated training path.
 
-The benchmark evaluates five distinct methods under standardized metric logging:
+## How To Use k.ipynb
 
-1. **Exact Retrain ($M_R$)**: Retrained from scratch on retained data ($D \setminus F$) with an accountant-aligned normalizer based on retained clients. Serves as ground truth.
-2. **DP-only / No Action ($M_{DP}$)**: Unmodified pre-deletion model protected by central client-level $(\epsilon, \delta)$-DP under Poisson participation and fixed public normalization.
-3. **Retained-Data Fine-Tuning ($M_{FT}$)**: Starting from the full model, executes fine-tuning rounds exclusively on retained client data.
-4. **Cached Reconstruction ($M_{CR}$)**: Direct historical accumulation removing forgotten clients' cached parameter updates without client re-querying.
-5. **Faithful FedEraser ($M_{FE}$)**:
-   - **Historical update requirement**: Stores initial model state, round-by-round client-level updates $\Delta w_{i, t}$, and per-round Gaussian noise $Z_t$.
-   - **Interactive calibration**: In each round $t$, retained participating clients receive current unlearned model $w'_t$ and run local calibration training to compute new direction $\Delta \tilde{w}_{i, t}$.
-   - **Update calibration**: Scales the new direction vector by the historical step magnitude:
-     $$\Delta \bar{w}_{i, t} = \|\Delta w_{i, t}\|_2 \cdot \frac{\Delta \tilde{w}_{i, t}}{\|\Delta \tilde{w}_{i, t}\|_2 + 10^{-12}}$$
-   - **Reconstruction**: Calibrated updates are aggregated with central DP noise preservation and fixed public normalization.
+The notebook `k.ipynb` is now local-only.
 
-#### Comparative Baseline Profile
+Run the cells in this order:
 
-| Baseline Method | Historical Storage | Active Client Participation | Raw Data Access at Unlearning | Runtime Overhead | DP Post-Processing? |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Exact Retrain** | 0 MB | Yes (All Retained) | Full Raw Data | Highest (~100%) | No (Internal Reference) |
-| **DP-only / No Action** | **0 MB** | **None (0%)** | **None (0%)** | **Instant (0.0s)** | **Yes (Pure Post-Processing)** |
-| **Retained Fine-Tuning** | 0 MB | Yes (Sampled Retained) | Raw Retained Data | Low (~4 rounds) | No (Accesses Raw Data) |
-| **Cached Reconstruction** | High (~76–104 MB) | None (Server-only) | None | Low (~0.1s) | No (Sensitive Server History) |
-| **Faithful FedEraser** | High (~76–104 MB) | Yes (Interactive) | Raw Retained Data | Moderate (~8s/run) | No (Interactive Raw Queries) |
+1. Verify local Python, PyTorch, and CUDA.
+2. Check local project files and data-directory accessibility.
+3. Set `PYTHONPATH` to the local `src` directory.
+4. Run the full local test suite.
+5. Run an in-memory ResNet-50 federated training smoke.
+6. Optionally run the real CIFAR-10 ResNet-50 smoke.
+7. Run the full local ResNet-50 DP utility sweep.
+8. Inspect the resulting accuracy table.
 
----
+Cells 1 to 5 should run even if the local CIFAR-10 directory is broken. Cells 6
+and 7 require real CIFAR-10 access.
 
-### 2. Calibrated Privacy Audit (Phase 8)
+## Interpretation Of Future ResNet-50 Results
 
-The privacy audit in `attacks.py` evaluates:
-- **Forgotten Population**, **Retained Population**, and **Unseen Population** across all candidate models ($M_{Full}, M_{DP}, M_U, M_R$).
-- Reports **AUC**, **attack advantage**, **TPR@1% FPR**, and **TPR@0.1% FPR** with true **95% Bootstrap Confidence Intervals**.
+The ResNet-50 sweep should be interpreted using the same scientific rules as the
+earlier CNN experiments.
 
----
+High accuracy with weak privacy is not enough. Strong privacy with random-chance
+accuracy is also not enough.
 
-### 3. Pre-Launch Verification: 11 / 11 Checks PASSED
+The useful regime is where:
 
-Before initiating the full 90-run grid, the complete framework was verified across 12 validation runs ($4\text{ cells} \times 3\text{ seeds}$) on local GPU:
+- Test accuracy is meaningfully above chance.
+- The privacy ledger reports the intended epsilon.
+- The DP-only model can be compared against an exact retrain ensemble.
+- Any explicit unlearning method is judged by marginal benefit over DP-only.
 
-| # | Check Item | Status | Validation Evidence |
-| :---: | :--- | :---: | :--- |
-| **1** | **CIFAR-10 Convergence** | **PASS** | Non-private control reached $32.9\%$ accuracy with `Flatten(1)` + tuned LR. |
-| **2** | **Non-Private Control Quality** | **PASS** | Clear separation between $\epsilon = \infty$ ($32.7\%$) and private $\epsilon \le 8$ ($10\text{--}12\%$). |
-| **3** | **Client-Level DP Accounting** | **PASS** | Verified ledger uses Poisson-subsampled Gaussian mechanism and fixed normalizer. |
-| **4** | **Actual Epsilon Values** | **PASS** | Exact target matches: $\epsilon = 1.999 \approx 2.0$, $\epsilon = 4.000 \approx 4.0$, $\epsilon = 7.999 \approx 8.0$. |
-| **5** | **Retrain Ensemble Correctness** | **PASS** | Multi-seed retrain ensemble ($N=3$) captures ground-truth variability quantiles ($Q_{10}, Q_{90}$). |
-| **6** | **MUB Calculations** | **PASS** | Utility, JS divergence, and MIA advantage MUB computed with 95% Bootstrap CIs. |
-| **7** | **Validity Gating** | **PASS** | `VALID`, `WARNING`, and `INVALID` flags properly assigned based on chance + offset. |
-| **8** | **Deletion Manifest Consistency** | **PASS** | SHA256-verified partition deletion manifests created and consistent. |
-| **9** | **Artifact Immutability** | **PASS** | Runs assigned deterministic immutable IDs (`cell_eps{eps}_a{alpha}_del{del}_s{seed}_{hash}`). |
-| **10** | **No Result Overwriting** | **PASS** | Resumability logic validates existing runs and skips valid directories without overwriting. |
-| **11** | **Master Aggregation of Cells** | **PASS** | All 12 validation runs aggregated into `master_results.json` and `master_summary.csv`. |
+Only then can we say whether unlearning is beneficial, redundant, harmful, or
+inconclusive.
 
----
+## Bottom Line
 
-### 4. Validation Subset Results & Key Scientific Finding
+DP-ForgetBench is not just training a model. It is building a careful scientific
+test for a specific question:
 
-Averaged across 3 independent seeds (`20260901`, `20260902`, `20260903`) per cell:
+> Does explicit client unlearning still matter once the model has already been
+> trained with client-level differential privacy?
 
-| Cell $(\epsilon, \alpha, \text{del})$ | DP-only Acc | Retrain Acc | Retained FT Acc | FedEraser Acc | DP Forgotten MIA Adv | Retrain Forgotten MIA Adv | FT MUB Acc | FedEraser MUB Acc | Consensus Classification |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **$\epsilon=\infty, \alpha=1.0, 100\%$** | $28.4\%$ | $30.4\%$ | $31.0\%$ | $26.2\%$ | $0.085$ | $0.062$ | $+0.026$ | $-0.022$ | **UNLEARNING-BENEFICIAL** |
-| **$\epsilon=8.0, \alpha=1.0, 100\%$** | $10.3\%$ | $10.0\%$ | $11.6\%$ | $10.4\%$ | $0.055$ | $0.048$ | $+0.012$ | $+0.001$ | **REDUNDANT / TRANSITION** |
-| **$\epsilon=4.0, \alpha=0.1, 100\%$** | $10.8\%$ | $10.0\%$ | $11.2\%$ | $11.7\%$ | $0.068$ | $0.068$ | $+0.004$ | $+0.009$ | **REDUNDANT** |
-| **$\epsilon=2.0, \alpha=0.1, 100\%$** | $09.5\%$ | $09.5\%$ | $10.6\%$ | $09.7\%$ | $0.072$ | $0.082$ | $+0.011$ | $+0.002$ | **REDUNDANT** |
+The answer is expected to depend on the regime. In non-private or weakly private
+settings, unlearning can matter. In sufficiently private and still useful
+settings, client influence may be masked enough that explicit unlearning becomes
+redundant. In over-noised settings, the model collapses and no unlearning claim
+is valid.
 
-> [!IMPORTANT]
-> **Does FedEraser remain useful under Client-Level DP?**
-> - **Non-private regime ($\epsilon = \infty$)**: FedEraser ($26.2\%$) and fine-tuning ($31.0\%$) provide clear benefits over naive cached reconstruction ($20.3\%$).
-> - **Private regime ($\epsilon \le 8.0$)**: Under client-level DP noise, **FedEraser provides NO measurable advantage over DP-only (doing nothing)** ($MUB_{acc} \approx +0.001$).
-> - Yet, FedEraser requires **$\sim 100\text{ MB}$ of sensitive server storage** per run and interactive client communication rounds that violate DP post-processing.
-> - **Conclusion**: Strong client-level DP mathematically and empirically masks client influence, rendering FedEraser redundant while avoiding its substantial storage and privacy costs.
-
----
-
-### 5. Complete 94-Run Factorial Grid Execution Results
-
-The full factorial grid ($5\epsilon \times 3\alpha \times 2\text{ del} \times 3\text{ seeds} = 30\text{ cells}$) was executed and validated ($94\text{ total runs}$, $100\%$ artifact completeness):
-
-| Privacy Regime | Total Runs | DP-Only Acc | Target Retrain Acc | Retained FT Acc | FedEraser Acc | DP Forgotten MIA Adv | Retrain Forgotten MIA Adv | FedEraser Forgotten MIA Adv | FedEraser MUB Acc | Validity Status |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **$\epsilon = \infty$ (Non-Private)** | 19 | $26.7\% \pm 2.2\%$ | $27.9\% \pm 3.2\%$ | $27.5\% \pm 3.0\%$ | $24.9\% \pm 1.8\%$ | $0.115$ | $0.087$ | $0.060$ | $-0.0184$ | `WARNING` ($25\%-40\%$) |
-| **$\epsilon = 8.0$ (Private)** | 19 | $10.6\% \pm 0.7\%$ | $09.1\% \pm 1.7\%$ | $11.4\% \pm 1.0\%$ | $10.9\% \pm 0.9\%$ | $0.093$ | $0.096$ | $0.072$ | $+0.0022$ | `INVALID` ($<25\%$) |
-| **$\epsilon = 4.0$ (Private)** | 19 | $10.8\% \pm 1.2\%$ | $10.1\% \pm 1.0\%$ | $11.2\% \pm 0.7\%$ | $10.9\% \pm 1.8\%$ | $0.082$ | $0.095$ | $0.089$ | $+0.0014$ | `INVALID` ($<25\%$) |
-| **$\epsilon = 2.0$ (Private)** | 19 | $09.9\% \pm 1.0\%$ | $09.7\% \pm 1.4\%$ | $11.0\% \pm 0.8\%$ | $09.9\% \pm 1.3\%$ | $0.094$ | $0.098$ | $0.085$ | $+0.0008$ | `INVALID` ($<25\%$) |
-| **$\epsilon = 1.0$ (Private)** | 18 | $09.7\% \pm 0.7\%$ | $09.6\% \pm 1.1\%$ | $11.3\% \pm 1.0\%$ | $09.7\% \pm 0.8\%$ | $0.088$ | $0.099$ | $0.065$ | $-0.0004$ | `INVALID` ($<25\%$) |
-
-#### Key Takeaways from the Full Grid
-1. **Unlearning Frontier Emerges at $\epsilon = \infty$**:
-   - In the non-private regime, the un-deleted model leaks forgotten membership information (MIA advantage $= 0.115$).
-   - Explicit unlearning (FedEraser and Fine-Tuning) significantly cuts MIA advantage to $0.060 - 0.087$, matching or improving upon retrain.
-   - Classification is unanimously **UNLEARNING-BENEFICIAL**.
-2. **FedEraser is Redundant Under Client-Level DP ($\epsilon \le 8.0$)**:
-   - Across all 78 private runs, FedEraser MUB is statistically centered around **$0.000$** ($+0.0008$ to $+0.0022$), providing **zero utility or privacy improvement over DP-only (doing nothing)**.
-   - Yet, FedEraser incurred **$93.7\text{ MB}$ of sensitive historical update storage** and **40 rounds of client calibration**, which violates DP post-processing.
-3. **Scientific Reality Check on DP Convergence**:
-   - Under client-level DP with 40 rounds, clipping threshold $C=1.0$, and $q=0.2$, Gaussian noise addition keeps 10-class CIFAR-10 test accuracy near the random guessing baseline ($10.0\%$).
-   - Validity gating correctly flagged all 78 private runs as `INVALID` ($< 25\%$). Reaching $\ge 40\%$ accuracy under client-level DP will require scaling client participation (e.g. $N=500, q=0.5$), higher local epochs, or pre-trained feature extractors.
-
----
-
-### 6. Executing Stress Tests & Frontier Confirmation
-
-```powershell
-# 1. Inspect grid test results and audit summary
-python scripts/check_grid_results.py
-
-# 2. Run sequential and influential client stress tests (Phase 10)
-python scripts/run_phase10_stress_tests.py
-
-# 3. Automatically detect transition cells and trigger >=10 seed confirmation (Phase 11)
-python scripts/run_phase11_frontier.py
-```
-
+The project so far has built the machinery to distinguish those regimes instead
+of guessing.

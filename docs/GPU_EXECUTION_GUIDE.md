@@ -29,14 +29,14 @@ python scripts/calibrate_noise.py --epsilon 8 12 16 20 24 32 --sample-rate 0.5 -
 ## Utility sweep
 
 ```powershell
-python scripts/run_multiclass_utility_sweep.py --config configs/multiclass_resnet18_utility_sweep.yaml
+python scripts/run_multiclass_utility_sweep.py --config configs/multiclass_resnet50_utility_sweep.yaml
 ```
 
 Outputs:
 
 ```text
-results/utility_sweep_resnet18/utility_sweep.csv
-results/utility_sweep_resnet18/utility_sweep.json
+results/utility_sweep_resnet50/utility_sweep.csv
+results/utility_sweep_resnet50/utility_sweep.json
 ```
 
 This command is intentionally training-only. It does not create deletion manifests or run unlearning.

@@ -6,9 +6,9 @@ This phase establishes a useful multiclass CIFAR-10 model under finite client-le
 
 ## Primary model
 
-`groupnorm_resnet18` is a CIFAR-sized ResNet-18 with GroupNorm in every normalization layer. The stem is a 3x3 stride-1 convolution, preserving CIFAR spatial detail. BatchNorm is deliberately avoided because client-local batch statistics complicate federated reproducibility and privacy interpretation.
+`groupnorm_resnet50` is the primary CIFAR-sized ResNet-50 with bottleneck blocks and GroupNorm in every normalization layer. The stem is a 3x3 stride-1 convolution, preserving CIFAR spatial detail. BatchNorm is deliberately avoided because client-local batch statistics complicate federated reproducibility and privacy interpretation.
 
-The existing `small_groupnorm_cnn` remains available as a lower-cost control.
+The existing `groupnorm_resnet18` and `small_groupnorm_cnn` remain available as lower-cost controls.
 
 ## Fixed privacy contract
 

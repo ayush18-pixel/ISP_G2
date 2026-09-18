@@ -1,0 +1,57 @@
+experiment_name: multiclass_resnet50_local_sweep
+seed: 20260918
+
+data:
+  backend: cifar10_multiclass
+  dataset_root: data
+  download: true
+  n_clients: 20
+  samples_per_client: 100
+  heterogeneity_alpha: 0.5
+  audit_samples: 200
+  test_samples: 1000
+
+model:
+  name: groupnorm_resnet50
+  num_classes: 10
+  base_width: 16
+
+execution:
+  require_cuda: true
+
+federated:
+  rounds: 15
+  local_epochs: 2
+  local_batch_size: 32
+  learning_rate: 0.05
+  client_sample_rate: 0.5
+
+privacy:
+  enabled: true
+  population_size: 20
+  delta: 1.0e-5
+  clip_norm: 1.0
+  noise_multiplier: 1.0
+  sampling: poisson
+  release_count: 1
+
+evaluation:
+  epsilons: [8.0, 16.0, 32.0]
+  seeds: [20260918]
+  validity_threshold_invalid: 0.25
+  validity_threshold_warning: 0.40
+
+deletion:
+  kind: client
+  client_id: 2
+
+unlearning:
+  method: finetune_retained
+  rounds: 2
+
+output:
+  root: results/utility_sweep_resnet50
+
+notes: >
+  Fast, local-first utility sweep optimized for local NVIDIA GeForce RTX 4060 GPU execution.
+  Completes across 3 epsilon values in under 3 minutes.

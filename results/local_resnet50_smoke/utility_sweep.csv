@@ -1,0 +1,2 @@
+aggregation_normalizer,clip_norm,delta,device,epsilon_actual,epsilon_target,local_epochs,model,noise_multiplier,population_size,regime,rounds,runtime_seconds,sample_rate,samples_per_client,seed,test_accuracy,test_loss,torch_version,validity_status
+10.0,1.0,1e-05,cuda,31.999999999999947,32.0,1,groupnorm_resnet50,0.28486715898602355,20,COLLAPSE,2,2.596,0.5,40,20260918,0.08399999886751175,3.458678722381592,2.5.1+cu121,INVALID

@@ -1,0 +1,32 @@
+[
+  {
+    "model": "groupnorm_resnet50",
+    "seed": 20260918,
+    "epsilon_target": 32.0,
+    "epsilon_actual": 31.999999999999947,
+    "delta": 1e-05,
+    "noise_multiplier": 0.28486715898602355,
+    "clip_norm": 1.0,
+    "sample_rate": 0.5,
+    "population_size": 20,
+    "samples_per_client": 40,
+    "rounds": 2,
+    "local_epochs": 1,
+    "aggregation_normalizer": 10.0,
+    "test_accuracy": 0.08399999886751175,
+    "test_loss": 3.458678722381592,
+    "validity_status": "INVALID",
+    "regime": "COLLAPSE",
+    "runtime_seconds": 2.596,
+    "train_cost": {
+      "rounds": 2,
+      "client_updates": 21,
+      "local_examples": 840,
+      "communicated_bytes": 124671624,
+      "persistent_storage_bytes": 0,
+      "runtime_seconds": 2.24
+    },
+    "device": "cuda",
+    "torch_version": "2.5.1+cu121"
+  }
+]

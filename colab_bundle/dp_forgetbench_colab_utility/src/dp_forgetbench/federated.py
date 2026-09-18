@@ -12,7 +12,7 @@ import torch
 from torch import nn
 
 from .data import ClientDataset
-from .models import GroupNormResNet18
+from .models import GroupNormResNet18, GroupNormResNet50
 
 
 class BinaryLinearModel(nn.Module):
@@ -77,6 +77,11 @@ def make_model(model_config: dict | None, n_features: int | None) -> nn.Module:
         return SmallGroupNormCNN(int((model_config or {}).get("num_classes", 10)))
     if name == "groupnorm_resnet18":
         return GroupNormResNet18(
+            num_classes=int((model_config or {}).get("num_classes", 10)),
+            base_width=int((model_config or {}).get("base_width", 64)),
+        )
+    if name == "groupnorm_resnet50":
+        return GroupNormResNet50(
             num_classes=int((model_config or {}).get("num_classes", 10)),
             base_width=int((model_config or {}).get("base_width", 64)),
         )

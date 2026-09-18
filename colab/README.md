@@ -1,6 +1,6 @@
 # DP-ForgetBench Colab T4 Utility Sweep
 
-This bundle is the first-stage multiclass utility gate. It runs GroupNorm ResNet-18 on CIFAR-10 and sweeps finite client-level-DP epsilon values on a Colab T4 GPU. It does not run unlearning yet.
+This bundle is the first-stage multiclass utility gate. It runs GroupNorm ResNet-50 on CIFAR-10 and sweeps finite client-level-DP epsilon values on a Colab T4 GPU. It does not run unlearning yet.
 
 ## Colab setup
 
@@ -25,14 +25,14 @@ If Colab reports an incompatible preinstalled torchvision, restart the runtime a
 ## Run the sweep
 
 ```python
-!python scripts/run_multiclass_utility_sweep.py --config configs/multiclass_resnet18_utility_sweep.yaml
+!python scripts/run_multiclass_utility_sweep.py --config configs/multiclass_resnet50_utility_sweep.yaml
 ```
 
 ## Outputs
 
 ```python
 import pandas as pd
-results = pd.read_csv("results/utility_sweep_resnet18/utility_sweep.csv")
+results = pd.read_csv("results/utility_sweep_resnet50/utility_sweep.csv")
 display(results[["epsilon_target", "epsilon_actual", "seed", "test_accuracy", "validity_status"]])
 ```
 
@@ -40,8 +40,8 @@ Download results:
 
 ```python
 from google.colab import files
-files.download("results/utility_sweep_resnet18/utility_sweep.csv")
-files.download("results/utility_sweep_resnet18/utility_sweep.json")
+files.download("results/utility_sweep_resnet50/utility_sweep.csv")
+files.download("results/utility_sweep_resnet50/utility_sweep.json")
 ```
 
 ## Flow

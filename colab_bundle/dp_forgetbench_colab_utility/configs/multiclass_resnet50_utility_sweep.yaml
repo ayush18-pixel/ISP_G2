@@ -1,0 +1,58 @@
+experiment_name: multiclass_resnet50_dp_utility_sweep
+seed: 20260918
+
+data:
+  backend: cifar10_multiclass
+  dataset_root: data
+  download: true
+  n_clients: 100
+  samples_per_client: 200
+  heterogeneity_alpha: 0.5
+  audit_samples: 500
+  test_samples: 10000
+
+model:
+  name: groupnorm_resnet50
+  num_classes: 10
+  base_width: 64
+
+execution:
+  require_cuda: true
+
+federated:
+  rounds: 60
+  local_epochs: 3
+  local_batch_size: 64
+  learning_rate: 0.05
+  client_sample_rate: 0.5
+
+privacy:
+  enabled: true
+  population_size: 100
+  delta: 1.0e-5
+  clip_norm: 1.0
+  noise_multiplier: 1.0
+  sampling: poisson
+  release_count: 1
+
+evaluation:
+  epsilons: [8.0, 12.0, 16.0, 20.0, 24.0, 32.0]
+  seeds: [20260918, 20260919, 20260920]
+  validity_threshold_invalid: 0.25
+  validity_threshold_warning: 0.40
+
+deletion:
+  kind: client
+  client_id: 2
+
+unlearning:
+  method: finetune_retained
+  rounds: 4
+
+output:
+  root: results/utility_sweep_resnet50
+
+notes: >
+  Training-only utility gate for the stronger CIFAR-sized GroupNorm ResNet-50.
+  This config intentionally does not run unlearning, MUB, or MIA. Freeze a
+  healthy configuration before moving to the deletion comparison.

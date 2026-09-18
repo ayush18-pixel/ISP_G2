@@ -7,3 +7,6 @@ partitions/generated/*
 reports/*.pdf
 !reports/.gitkeep
 data/
+local_test_tmp/
+.test_tmp/
+
