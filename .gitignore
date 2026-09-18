@@ -10,3 +10,12 @@ data/
 local_test_tmp/
 .test_tmp/
 
+
+# Build / packaging artifacts
+*.egg-info/
+
+# Generated distributables (rebuild with scripts/build_colab_bundle.py)
+colab_bundle/*.zip
+
+# Scratch config written by scripts/run_dp_sweep.py at runtime
+configs/temp_sweep.yaml

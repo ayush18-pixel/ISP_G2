@@ -24,7 +24,7 @@ def per_sample_loss(model: nn.Module, x: torch.Tensor, y: torch.Tensor) -> np.nd
     """Per-example loss for either a binary (single-logit) or multi-class model."""
     device = get_device()
     model = model.to(device)
-    x = x.to(device)
+    # ``x`` stays on CPU; ``flatten_logits`` streams it to the device in batches.
     logits = flatten_logits(model, x)
     if logits.ndim == 1 or logits.shape[-1] == 1:
         loss = torch.nn.functional.binary_cross_entropy_with_logits(logits.squeeze(-1), y.cpu().float(), reduction="none")

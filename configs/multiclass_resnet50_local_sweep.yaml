@@ -25,6 +25,14 @@ federated:
   local_batch_size: 32
   learning_rate: 0.05
   client_sample_rate: 0.5
+  # The multiclass backend hands each client its examples grouped by class.
+  # Without reshuffling, mini-batches hold ~2 of 10 classes and deep models
+  # never leave chance accuracy. Keep this on.
+  shuffle_local_batches: true
+  # Local momentum is available but measured worse here (20.1% -> 15.8% at
+  # eps=inf): the optimizer state is rebuilt every round, so 2 local epochs is
+  # too short to amortise it. Leave at 0 unless local_epochs is raised.
+  local_momentum: 0.0
 
 privacy:
   enabled: true
@@ -57,5 +65,10 @@ output:
 
 notes: >
   40-round local sweep for RTX 4060 Laptop GPU with adequate data per client (250 samples).
-  ResNet-50 (base_width=16, ~1.5M params) on 5,000 training samples should achieve
-  ~30-40% at eps=inf.  Total runtime ~5-6 min.
+  ResNet-50 (base_width=16) has 1,484,186 parameters against SmallGroupNormCNN's 60,554.
+  Under client-level DP the injected noise has norm sigma*C*sqrt(d) while the signal is at
+  most q*N clipped updates of norm C, so the per-round SNR q*N/(sigma*sqrt(d)) falls by
+  sqrt(1484186/60554) = 4.95x purely from the parameter count. At N=20, q=0.5 this config
+  sits far below the validated frontier point (N=100, q=0.5, T=60, eps=32, SNR 0.205).
+  Treat the finite-epsilon rows here as a dimension-scaling demonstration, not a utility
+  target; use the eps=inf row as the architecture's non-private ceiling.

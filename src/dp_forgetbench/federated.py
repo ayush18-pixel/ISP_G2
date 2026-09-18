@@ -184,19 +184,40 @@ def clip_delta(delta: dict[str, torch.Tensor], clip_norm: float) -> dict[str, to
 
 
 def _local_update(
-    global_state: dict[str, torch.Tensor], client: ClientDataset, config: dict, n_features: int, model_config: dict | None
+    global_state: dict[str, torch.Tensor],
+    client: ClientDataset,
+    config: dict,
+    n_features: int,
+    model_config: dict | None,
+    generator: torch.Generator | None = None,
 ) -> dict[str, torch.Tensor]:
+    """Run one client's local SGD and return its parameter delta.
+
+    Local batches are reshuffled every epoch. The multi-class CIFAR backend hands
+    each client its examples grouped by class, so iterating the tensor in storage
+    order yields near-single-class mini-batches (~2 of 10 classes per batch at
+    alpha=0.5). That starves the local objective and is fatal for deep models.
+    Pass ``generator`` to keep the permutation reproducible.
+    """
     device = get_device()
     model = make_model(model_config, n_features).to(device)
     # Ensure global_state is on the correct device when loading
     model.load_state_dict({k: v.to(device) for k, v in global_state.items()})
     model.train()
-    optimizer = torch.optim.SGD(model.parameters(), lr=float(config["learning_rate"]))
+    optimizer = torch.optim.SGD(
+        model.parameters(),
+        lr=float(config["learning_rate"]),
+        momentum=float(config.get("local_momentum", 0.0)),
+    )
     batch_size = int(config["local_batch_size"])
+    shuffle = bool(config.get("shuffle_local_batches", True))
+    n_examples = len(client.y)
     for _ in range(int(config["local_epochs"])):
-        for start in range(0, len(client.y), batch_size):
-            x = client.x[start : start + batch_size].to(device, non_blocking=True)
-            y = client.y[start : start + batch_size].to(device, non_blocking=True)
+        order = torch.randperm(n_examples, generator=generator) if shuffle else torch.arange(n_examples)
+        for start in range(0, n_examples, batch_size):
+            batch_index = order[start : start + batch_size]
+            x = client.x[batch_index].to(device, non_blocking=True)
+            y = client.y[batch_index].to(device, non_blocking=True)
             optimizer.zero_grad()
             loss = _per_example_loss(model(x), y).mean()
             loss.backward()
@@ -231,6 +252,9 @@ def train_federated(
         raise ValueError("Cannot train without retained clients.")
     set_seed(seed)
     rng = np.random.default_rng(seed)
+    # Dedicated stream for local batch permutations so the shuffle is reproducible
+    # and independent of the client-sampling stream.
+    batch_generator = torch.Generator().manual_seed(seed)
     device = get_device()
     model = make_model(model_config, n_features).to(device)
     if initial_state is not None:
@@ -258,7 +282,9 @@ def train_federated(
             continue
         deltas = []
         for client_id in selected:
-            delta = _local_update(global_state, clients[client_id], federated_config, n_features, model_config)
+            delta = _local_update(
+                global_state, clients[client_id], federated_config, n_features, model_config, batch_generator
+            )
             if private:
                 delta = clip_delta(delta, clip_norm)
             deltas.append(delta)
@@ -383,6 +409,8 @@ def federated_eraser(
     local_epochs = int(federated_config.get("local_epochs", 1))
     cali_epochs = max(1, int(round(local_epochs * calibration_ratio)))
     cali_config = {**federated_config, "local_epochs": cali_epochs}
+    # Calibration re-trains locally, so it needs the same reproducible shuffle stream.
+    batch_generator = torch.Generator().manual_seed(int(federated_config.get("seed", 0)))
 
     for round_record in history.rounds:
         cost.rounds += 1
@@ -402,7 +430,9 @@ def federated_eraser(
             cost.communicated_bytes += sum(v.numel() * v.element_size() for v in global_state.values())
 
             # 2. Calibration training on client local data from w'_t
-            delta_tilde = _local_update(global_state, client_data, cali_config, n_features, model_config)
+            delta_tilde = _local_update(
+                global_state, client_data, cali_config, n_features, model_config, batch_generator
+            )
             cost.client_updates += 1
             cost.local_examples += len(client_data.y) * cali_epochs
 
@@ -472,23 +502,28 @@ def finetune_retained(
     )
 
 
-def flatten_logits(model: nn.Module, x: torch.Tensor) -> torch.Tensor:
+def flatten_logits(model: nn.Module, x: torch.Tensor, batch_size: int = 512) -> torch.Tensor:
+    """Evaluate ``model`` over ``x`` in batches and return CPU logits.
+
+    Batching is not optional at benchmark scale: the CIFAR ResNets keep a
+    stride-1 stem, so layer1 holds a ``(N, 4*base_width, 32, 32)`` activation.
+    One forward pass over a 10k-example test set at base_width=64 would need
+    ~10 GB for that single tensor alone.
+    """
     device = get_device()
-    x = x.to(device)
     model = model.to(device)
     model.eval()
+    outputs = []
     with torch.no_grad():
-        return model(x).detach().cpu()
+        for start in range(0, len(x), batch_size):
+            batch = x[start : start + batch_size].to(device, non_blocking=True)
+            outputs.append(model(batch).detach().cpu())
+    return torch.cat(outputs) if outputs else torch.empty(0)
 
 
 def evaluate_loss_accuracy(model: nn.Module, x: torch.Tensor, y: torch.Tensor) -> dict[str, float]:
-    device = get_device()
-    model = model.to(device)
-    model.eval()
-    with torch.no_grad():
-        x = x.to(device)
-        logits = flatten_logits(model, x)
-        loss = _per_example_loss(logits, y.cpu()).mean().item()
+    logits = flatten_logits(model, x)
+    loss = _per_example_loss(logits, y.cpu()).mean().item()
     accuracy = _accuracy(logits, y.cpu()).item()
     return {"loss": float(loss), "accuracy": float(accuracy)}
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import torch
 from torch import nn
 
@@ -27,16 +28,13 @@ def js_divergence_to_target(candidate: nn.Module, target: nn.Module, x: torch.Te
     device = get_device()
     candidate = candidate.to(device)
     target = target.to(device)
-    x = x.to(device)
+    # ``x`` stays on CPU; ``flatten_logits`` streams it to the device in batches.
     p_dist = _predictive_distribution(flatten_logits(candidate, x))
     q_dist = _predictive_distribution(flatten_logits(target, x))
     midpoint = 0.5 * (p_dist + q_dist)
     kl_p = (p_dist * (p_dist.log() - midpoint.log())).sum(dim=1)
     kl_q = (q_dist * (q_dist.log() - midpoint.log())).sum(dim=1)
     return float((0.5 * (kl_p + kl_q)).mean().item())
-
-
-import numpy as np
 
 
 def compute_bootstrap_ci(data, stat_func, n_bootstraps=500, ci_level=0.95):
@@ -81,7 +79,6 @@ def compute_method_mub(
 
     mub_acc = float(u_acc - dp_acc)
     mub_js = float(dp_js - u_js)
-    mub_mia = float(abs(dp_mia - retrain_mia_median) - abs(u_mia - retrain_mia_median))
 
     def mub_mia_stat(sample_retrain_mia):
         med = np.median(sample_retrain_mia)
