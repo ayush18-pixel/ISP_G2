@@ -1,0 +1,113 @@
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+/usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/swiglu_ffn.py:51: UserWarning: xFormers is not available (SwiGLU)
+  warnings.warn("xFormers is not available (SwiGLU)")
+/usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/attention.py:33: UserWarning: xFormers is not available (Attention)
+  warnings.warn("xFormers is not available (Attention)")
+/usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main/dinov2/layers/block.py:40: UserWarning: xFormers is not available (Block)
+  warnings.warn("xFormers is not available (Block)")
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+Using cache found in /usershome/ds404_user2/.cache/torch/hub/facebookresearch_dinov2_main
+
+============================================================
+  Seed 1/3 (seed=1000) [model=dinov2]
+  Training full M_DP (all clients)...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_DP test acc: 90.38% in 222.5s
+
+  Post-hoc deletion: j=2 clients [40, 66]
+    Training M_R^(j=2) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(2) test acc: 90.16%
+    JS(DP, R): 0.0013 | JS(FT, R): 0.0013 | MUB_JS: +0.0000 | F-vs-U AUC: 0.497
+
+  Post-hoc deletion: j=4 clients [40, 66, 24, 61]
+    Training M_R^(j=4) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(4) test acc: 90.12%
+    JS(DP, R): 0.0013 | JS(FT, R): 0.0013 | MUB_JS: +0.0000 | F-vs-U AUC: 0.493
+
+  Post-hoc deletion: j=8 clients [40, 66, 24, 61, 41, 14, 23, 42]
+    Training M_R^(j=8) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(8) test acc: 90.72%
+    JS(DP, R): 0.0014 | JS(FT, R): 0.0014 | MUB_JS: +0.0000 | F-vs-U AUC: 0.491
+
+  Post-hoc deletion: j=16 clients [40, 66, 24, 61, 41, 14, 23, 42, 0, 47, 32, 25, 59, 49, 21, 69]
+    Training M_R^(j=16) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(16) test acc: 89.57%
+    JS(DP, R): 0.0015 | JS(FT, R): 0.0015 | MUB_JS: +0.0000 | F-vs-U AUC: 0.496
+
+============================================================
+  Seed 2/3 (seed=1077) [model=dinov2]
+  Training full M_DP (all clients)...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_DP test acc: 90.20% in 215.6s
+
+  Post-hoc deletion: j=2 clients [0, 71]
+    Training M_R^(j=2) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(2) test acc: 90.09%
+    JS(DP, R): 0.0014 | JS(FT, R): 0.0014 | MUB_JS: +0.0000 | F-vs-U AUC: 0.465
+
+  Post-hoc deletion: j=4 clients [0, 71, 15, 21]
+    Training M_R^(j=4) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(4) test acc: 90.57%
+    JS(DP, R): 0.0014 | JS(FT, R): 0.0014 | MUB_JS: +0.0000 | F-vs-U AUC: 0.507
+
+  Post-hoc deletion: j=8 clients [0, 71, 15, 21, 18, 83, 96, 8]
+    Training M_R^(j=8) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(8) test acc: 89.57%
+    JS(DP, R): 0.0015 | JS(FT, R): 0.0015 | MUB_JS: +0.0000 | F-vs-U AUC: 0.488
+
+  Post-hoc deletion: j=16 clients [0, 71, 15, 21, 18, 83, 96, 8, 49, 73, 58, 6, 46, 61, 9, 29]
+    Training M_R^(j=16) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(16) test acc: 90.17%
+    JS(DP, R): 0.0017 | JS(FT, R): 0.0017 | MUB_JS: +0.0000 | F-vs-U AUC: 0.501
+
+============================================================
+  Seed 3/3 (seed=1154) [model=dinov2]
+  Training full M_DP (all clients)...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_DP test acc: 91.28% in 386.9s
+
+  Post-hoc deletion: j=2 clients [79, 53]
+    Training M_R^(j=2) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(2) test acc: 90.49%
+    JS(DP, R): 0.0012 | JS(FT, R): 0.0012 | MUB_JS: +0.0000 | F-vs-U AUC: 0.477
+
+  Post-hoc deletion: j=4 clients [79, 53, 19, 44]
+    Training M_R^(j=4) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(4) test acc: 90.11%
+    JS(DP, R): 0.0013 | JS(FT, R): 0.0013 | MUB_JS: +0.0000 | F-vs-U AUC: 0.508
+
+  Post-hoc deletion: j=8 clients [79, 53, 19, 44, 27, 60, 40, 82]
+    Training M_R^(j=8) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(8) test acc: 90.03%
+    JS(DP, R): 0.0014 | JS(FT, R): 0.0014 | MUB_JS: +0.0000 | F-vs-U AUC: 0.504
+
+  Post-hoc deletion: j=16 clients [79, 53, 19, 44, 27, 60, 40, 82, 97, 63, 21, 15, 13, 33, 42, 61]
+    Training M_R^(j=16) from scratch on retained clients...
+[Tier2] Backbone: dinov2_small, Feature dim: 384, Trainable params: 3,850
+    M_R^(16) test acc: 90.04%
+    JS(DP, R): 0.0016 | JS(FT, R): 0.0016 | MUB_JS: +0.0000 | F-vs-U AUC: 0.492
+
+  Results saved -> /usershome/ds404_user2/isp/ISP_30oct/DP-ForgetBench/results/sequential_deletion_dinov2_eps64_alpha20_counts2_4_8_16/sequential_dinov2_dinov2_small_N100_eps64.0_alpha20.0_M16.json

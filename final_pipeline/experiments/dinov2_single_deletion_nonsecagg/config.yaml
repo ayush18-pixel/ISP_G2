@@ -1,0 +1,41 @@
+experiment_name: dinov2_single_deletion_nonsecagg_full_metrics
+dataset: cifar10
+dataset_root: data
+backbone: dinov2_small
+num_classes: 10
+alpha_values: [0.1, 1, 5, 20, 100]
+epsilon_values: [8, 16, 32, 64]
+seeds: [20260918, 20260919, 20260920, 20260921, 20260922]
+deletion:
+  client_id: 2
+  fraction: 1.0
+data:
+  n_clients: 100
+  samples_per_client: 200
+  audit_samples: 500
+  test_samples: 10000
+federated:
+  rounds: 40
+  local_epochs: 5
+  local_batch_size: 64
+  learning_rate: 0.05
+  client_sample_rate: 0.5
+  optimizer: sgd
+  local_momentum: 0.0
+  local_weight_decay: 0.0
+  secure_aggregation: false
+privacy:
+  delta: 0.00001
+  clip_norm: 1.0
+  sampling: poisson
+  release_count: 1
+  secure_rng: false
+  secure_aggregation: false
+unlearning:
+  rounds: 4
+  calibration_ratio: 0.5
+evaluation:
+  retrain_ensemble_size: 5
+output:
+  root: results/dinov2_single_deletion_nonsecagg_full_metrics
+  feature_cache: results/dinov2_single_deletion_full_metrics/feature_cache.pt

@@ -1,0 +1,8 @@
+{
+  "expected_cells": 100,
+  "completed_cells": 100,
+  "missing_cells": [],
+  "invalid_cells": [],
+  "complete": true,
+  "warning": "DP replays use fresh OS-seeded sampling/noise because old checkpoints were not persisted. The old grid is a descriptive reference, not a paired comparison. Accuracy alone does not establish successful unlearning or privacy."
+}

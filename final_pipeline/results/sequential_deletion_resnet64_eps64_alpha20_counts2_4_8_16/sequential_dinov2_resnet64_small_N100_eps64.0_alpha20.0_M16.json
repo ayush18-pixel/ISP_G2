@@ -1,0 +1,2273 @@
+{
+  "experiment": "sequential_deletion",
+  "n_clients": 100,
+  "max_deletions": 16,
+  "deletion_counts": [
+    2,
+    4,
+    8,
+    16
+  ],
+  "target_epsilon": 64.0,
+  "heterogeneity_alpha": 20.0,
+  "noise_multiplier": 0.6304215961383466,
+  "privacy_accounting": {
+    "original_full_model_training": {
+      "enabled": true,
+      "adjacency": "add/remove one complete client dataset",
+      "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+      "sampling": "independent Poisson client participation",
+      "client_sample_rate": 0.5,
+      "public_population_size": 100,
+      "aggregation_normalizer": 50.0,
+      "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+      "rounds": 40,
+      "release_count": 1,
+      "clip_norm": 1.0,
+      "noise_multiplier": 0.6304215961383466,
+      "epsilon": 63.99999999999494,
+      "delta": 1e-05,
+      "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+      "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+      "floating_point_noise_mitigation": false,
+      "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+    },
+    "scope_note": "The original model ledger covers only the configured Poisson-sampled Gaussian training mechanism. It does not certify cached per-client update storage, FedEraser-style recalibration, retained-data fine-tuning, exact-retrain reference releases, or data-dependent evaluation artifacts."
+  },
+  "secure_rng": false,
+  "deletion_sequence": [
+    40,
+    66,
+    24,
+    61,
+    41,
+    14,
+    23,
+    42,
+    0,
+    47,
+    32,
+    25,
+    59,
+    49,
+    21,
+    69
+  ],
+  "deletion_sequence_by_seed": {
+    "1000": [
+      40,
+      66,
+      24,
+      61,
+      41,
+      14,
+      23,
+      42,
+      0,
+      47,
+      32,
+      25,
+      59,
+      49,
+      21,
+      69
+    ],
+    "1077": [
+      0,
+      71,
+      15,
+      21,
+      18,
+      83,
+      96,
+      8,
+      49,
+      73,
+      58,
+      6,
+      46,
+      61,
+      9,
+      29
+    ],
+    "1154": [
+      79,
+      53,
+      19,
+      44,
+      27,
+      60,
+      40,
+      82,
+      97,
+      63,
+      21,
+      15,
+      13,
+      33,
+      42,
+      61
+    ]
+  },
+  "n_seeds": 3,
+  "seed_results": [
+    {
+      "seed": 1000,
+      "model_type": "dinov2",
+      "backbone_name": "dinov2_small",
+      "m_dp_test_acc": 0.9038000106811523,
+      "deletion_sequence": [
+        40,
+        66,
+        24,
+        61,
+        41,
+        14,
+        23,
+        42,
+        0,
+        47,
+        32,
+        25,
+        59,
+        49,
+        21,
+        69
+      ],
+      "deletion_results": [
+        {
+          "j": 2,
+          "deleted_clients": [
+            40,
+            66
+          ],
+          "m_dp_test_acc": 0.9038000106811523,
+          "m_dp_forgotten_acc": 0.8962500095367432,
+          "m_r_test_acc": 0.9016000032424927,
+          "m_r_forgotten_acc": 0.8924999833106995,
+          "m_cached_test_acc": 0.9054999947547913,
+          "m_cached_forgotten_acc": 0.8912500143051147,
+          "m_eraser_test_acc": 0.9021999835968018,
+          "m_eraser_forgotten_acc": 0.893750011920929,
+          "m_ft_test_acc": 0.9038000106811523,
+          "m_ft_forgotten_acc": 0.8962500095367432,
+          "js_dp_to_retrain_test": 0.0012605175143107772,
+          "js_dp_to_retrain_forget": 0.001230287947691977,
+          "js_cached_to_retrain_test": 0.0013699315022677183,
+          "js_cached_to_retrain_forget": 0.0013379639713093638,
+          "js_eraser_to_retrain_test": 0.0014129579067230225,
+          "js_eraser_to_retrain_forget": 0.0013854954158887267,
+          "js_ft_to_retrain_test": 0.0012605175143107772,
+          "js_ft_to_retrain_forget": 0.001230287947691977,
+          "prediction_agreement_dp_to_retrain_test": 0.9487000107765198,
+          "prediction_agreement_dp_to_retrain_forget": 0.9462500214576721,
+          "prediction_agreement_cached_to_retrain_test": 0.9467999935150146,
+          "prediction_agreement_cached_to_retrain_forget": 0.9462500214576721,
+          "prediction_agreement_eraser_to_retrain_test": 0.947700023651123,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9437500238418579,
+          "prediction_agreement_finetune_to_retrain_test": 0.9487000107765198,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9462500214576721,
+          "parameter_l2_dp_to_retrain": 7.468649092635331,
+          "parameter_relative_l2_dp_to_retrain": 0.018985330563015376,
+          "parameter_l2_cached_to_retrain": 7.474938740199133,
+          "parameter_relative_l2_cached_to_retrain": 0.01900131886781355,
+          "parameter_l2_eraser_to_retrain": 7.486412297789454,
+          "parameter_relative_l2_eraser_to_retrain": 0.019030484688952586,
+          "parameter_l2_finetune_to_retrain": 7.468649092635331,
+          "parameter_relative_l2_finetune_to_retrain": 0.018985330563015376,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -0.00010941398795694113,
+          "mub_eraser_js_test": -0.00015244039241224527,
+          "cached_runtime_s": 0.4692657692357898,
+          "eraser_runtime_s": 62.96488780155778,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 98,
+              "aggregation_normalizer": 49.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 98,
+              "aggregation_normalizer": 49.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.49734375000000003,
+          "redundancy_signal": "dp_already_close"
+        },
+        {
+          "j": 4,
+          "deleted_clients": [
+            40,
+            66,
+            24,
+            61
+          ],
+          "m_dp_test_acc": 0.9038000106811523,
+          "m_dp_forgotten_acc": 0.9043750166893005,
+          "m_r_test_acc": 0.901199996471405,
+          "m_r_forgotten_acc": 0.8999999761581421,
+          "m_cached_test_acc": 0.9061999917030334,
+          "m_cached_forgotten_acc": 0.9024999737739563,
+          "m_eraser_test_acc": 0.9007999897003174,
+          "m_eraser_forgotten_acc": 0.9024999737739563,
+          "m_ft_test_acc": 0.9038000106811523,
+          "m_ft_forgotten_acc": 0.9043750166893005,
+          "js_dp_to_retrain_test": 0.0013169226003810763,
+          "js_dp_to_retrain_forget": 0.0013199651148170233,
+          "js_cached_to_retrain_test": 0.001362576149404049,
+          "js_cached_to_retrain_forget": 0.0013773037353530526,
+          "js_eraser_to_retrain_test": 0.001470064977183938,
+          "js_eraser_to_retrain_forget": 0.0014771074056625366,
+          "js_ft_to_retrain_test": 0.0013169226003810763,
+          "js_ft_to_retrain_forget": 0.0013199651148170233,
+          "prediction_agreement_dp_to_retrain_test": 0.9399999976158142,
+          "prediction_agreement_dp_to_retrain_forget": 0.949999988079071,
+          "prediction_agreement_cached_to_retrain_test": 0.9406999945640564,
+          "prediction_agreement_cached_to_retrain_forget": 0.9512500166893005,
+          "prediction_agreement_eraser_to_retrain_test": 0.9379000067710876,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9506250023841858,
+          "prediction_agreement_finetune_to_retrain_test": 0.9399999976158142,
+          "prediction_agreement_finetune_to_retrain_forget": 0.949999988079071,
+          "parameter_l2_dp_to_retrain": 7.57278052468898,
+          "parameter_relative_l2_dp_to_retrain": 0.019250212489218925,
+          "parameter_l2_cached_to_retrain": 7.582438861101399,
+          "parameter_relative_l2_cached_to_retrain": 0.01927476424106559,
+          "parameter_l2_eraser_to_retrain": 7.591894957453997,
+          "parameter_relative_l2_eraser_to_retrain": 0.01929880189322157,
+          "parameter_l2_finetune_to_retrain": 7.57278052468898,
+          "parameter_relative_l2_finetune_to_retrain": 0.019250212489218925,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -4.5653549022972584e-05,
+          "mub_eraser_js_test": -0.0001531423768028617,
+          "cached_runtime_s": 0.4180007157847285,
+          "eraser_runtime_s": 61.56652380153537,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 96,
+              "aggregation_normalizer": 48.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 96,
+              "aggregation_normalizer": 48.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.49294687499999995,
+          "redundancy_signal": "dp_already_close"
+        },
+        {
+          "j": 8,
+          "deleted_clients": [
+            40,
+            66,
+            24,
+            61,
+            41,
+            14,
+            23,
+            42
+          ],
+          "m_dp_test_acc": 0.9038000106811523,
+          "m_dp_forgotten_acc": 0.910937488079071,
+          "m_r_test_acc": 0.9071999788284302,
+          "m_r_forgotten_acc": 0.9049999713897705,
+          "m_cached_test_acc": 0.9039999842643738,
+          "m_cached_forgotten_acc": 0.9053124785423279,
+          "m_eraser_test_acc": 0.8996999859809875,
+          "m_eraser_forgotten_acc": 0.9071875214576721,
+          "m_ft_test_acc": 0.9038000106811523,
+          "m_ft_forgotten_acc": 0.910937488079071,
+          "js_dp_to_retrain_test": 0.0013695593224838376,
+          "js_dp_to_retrain_forget": 0.0013832341646775603,
+          "js_cached_to_retrain_test": 0.0015976297436282039,
+          "js_cached_to_retrain_forget": 0.001624187920242548,
+          "js_eraser_to_retrain_test": 0.0015823961002752185,
+          "js_eraser_to_retrain_forget": 0.0016030233819037676,
+          "js_ft_to_retrain_test": 0.0013695593224838376,
+          "js_ft_to_retrain_forget": 0.0013832341646775603,
+          "prediction_agreement_dp_to_retrain_test": 0.9402999877929688,
+          "prediction_agreement_dp_to_retrain_forget": 0.9431250095367432,
+          "prediction_agreement_cached_to_retrain_test": 0.9427000284194946,
+          "prediction_agreement_cached_to_retrain_forget": 0.9462500214576721,
+          "prediction_agreement_eraser_to_retrain_test": 0.9373000264167786,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9418749809265137,
+          "prediction_agreement_finetune_to_retrain_test": 0.9402999877929688,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9431250095367432,
+          "parameter_l2_dp_to_retrain": 7.559599484965093,
+          "parameter_relative_l2_dp_to_retrain": 0.019216684087628444,
+          "parameter_l2_cached_to_retrain": 7.57868964838195,
+          "parameter_relative_l2_cached_to_retrain": 0.019265211743133545,
+          "parameter_l2_eraser_to_retrain": 7.590213515418965,
+          "parameter_relative_l2_eraser_to_retrain": 0.019294505690882837,
+          "parameter_l2_finetune_to_retrain": 7.559599484965093,
+          "parameter_relative_l2_finetune_to_retrain": 0.019216684087628444,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -0.00022807042114436626,
+          "mub_eraser_js_test": -0.00021283677779138088,
+          "cached_runtime_s": 0.5445951065048575,
+          "eraser_runtime_s": 57.583750932477415,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 92,
+              "aggregation_normalizer": 46.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 92,
+              "aggregation_normalizer": 46.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.49059960937499997,
+          "redundancy_signal": "dp_already_close"
+        },
+        {
+          "j": 16,
+          "deleted_clients": [
+            40,
+            66,
+            24,
+            61,
+            41,
+            14,
+            23,
+            42,
+            0,
+            47,
+            32,
+            25,
+            59,
+            49,
+            21,
+            69
+          ],
+          "m_dp_test_acc": 0.9038000106811523,
+          "m_dp_forgotten_acc": 0.9053124785423279,
+          "m_r_test_acc": 0.8956999778747559,
+          "m_r_forgotten_acc": 0.895312488079071,
+          "m_cached_test_acc": 0.8902000188827515,
+          "m_cached_forgotten_acc": 0.8865625262260437,
+          "m_eraser_test_acc": 0.8942999839782715,
+          "m_eraser_forgotten_acc": 0.8946874737739563,
+          "m_ft_test_acc": 0.9038000106811523,
+          "m_ft_forgotten_acc": 0.9053124785423279,
+          "js_dp_to_retrain_test": 0.0014702815096825361,
+          "js_dp_to_retrain_forget": 0.0014674859121441841,
+          "js_cached_to_retrain_test": 0.0023284831549972296,
+          "js_cached_to_retrain_forget": 0.002364912535995245,
+          "js_eraser_to_retrain_test": 0.002210636157542467,
+          "js_eraser_to_retrain_forget": 0.0022283426951617002,
+          "js_ft_to_retrain_test": 0.0014702815096825361,
+          "js_ft_to_retrain_forget": 0.0014674859121441841,
+          "prediction_agreement_dp_to_retrain_test": 0.9369999766349792,
+          "prediction_agreement_dp_to_retrain_forget": 0.9410937428474426,
+          "prediction_agreement_cached_to_retrain_test": 0.9253000020980835,
+          "prediction_agreement_cached_to_retrain_forget": 0.9290624856948853,
+          "prediction_agreement_eraser_to_retrain_test": 0.9315000176429749,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9348437786102295,
+          "prediction_agreement_finetune_to_retrain_test": 0.9369999766349792,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9410937428474426,
+          "parameter_l2_dp_to_retrain": 7.928269125535154,
+          "parameter_relative_l2_dp_to_retrain": 0.020153542722176735,
+          "parameter_l2_cached_to_retrain": 7.998817860293573,
+          "parameter_relative_l2_cached_to_retrain": 0.020332876561308156,
+          "parameter_l2_eraser_to_retrain": 8.014921589972516,
+          "parameter_relative_l2_eraser_to_retrain": 0.020373812003701964,
+          "parameter_l2_finetune_to_retrain": 7.928269125535154,
+          "parameter_relative_l2_finetune_to_retrain": 0.020153542722176735,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -0.0008582016453146935,
+          "mub_eraser_js_test": -0.000740354647859931,
+          "cached_runtime_s": 0.5028015561401844,
+          "eraser_runtime_s": 54.123071586713195,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 84,
+              "aggregation_normalizer": 42.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 84,
+              "aggregation_normalizer": 42.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.4964279296875,
+          "redundancy_signal": "dp_already_close"
+        }
+      ]
+    },
+    {
+      "seed": 1077,
+      "model_type": "dinov2",
+      "backbone_name": "dinov2_small",
+      "m_dp_test_acc": 0.9020000100135803,
+      "deletion_sequence": [
+        0,
+        71,
+        15,
+        21,
+        18,
+        83,
+        96,
+        8,
+        49,
+        73,
+        58,
+        6,
+        46,
+        61,
+        9,
+        29
+      ],
+      "deletion_results": [
+        {
+          "j": 2,
+          "deleted_clients": [
+            0,
+            71
+          ],
+          "m_dp_test_acc": 0.9020000100135803,
+          "m_dp_forgotten_acc": 0.9125000238418579,
+          "m_r_test_acc": 0.9009000062942505,
+          "m_r_forgotten_acc": 0.90625,
+          "m_cached_test_acc": 0.9003999829292297,
+          "m_cached_forgotten_acc": 0.9100000262260437,
+          "m_eraser_test_acc": 0.9007999897003174,
+          "m_eraser_forgotten_acc": 0.9037500023841858,
+          "m_ft_test_acc": 0.9020000100135803,
+          "m_ft_forgotten_acc": 0.9125000238418579,
+          "js_dp_to_retrain_test": 0.0014330644626170397,
+          "js_dp_to_retrain_forget": 0.001407210947945714,
+          "js_cached_to_retrain_test": 0.0016084209783002734,
+          "js_cached_to_retrain_forget": 0.0016010621329769492,
+          "js_eraser_to_retrain_test": 0.0016478730831295252,
+          "js_eraser_to_retrain_forget": 0.0016168871661648154,
+          "js_ft_to_retrain_test": 0.0014330644626170397,
+          "js_ft_to_retrain_forget": 0.001407210947945714,
+          "prediction_agreement_dp_to_retrain_test": 0.9442999958992004,
+          "prediction_agreement_dp_to_retrain_forget": 0.9549999833106995,
+          "prediction_agreement_cached_to_retrain_test": 0.9398999810218811,
+          "prediction_agreement_cached_to_retrain_forget": 0.9487500190734863,
+          "prediction_agreement_eraser_to_retrain_test": 0.9427000284194946,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9487500190734863,
+          "prediction_agreement_finetune_to_retrain_test": 0.9442999958992004,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9549999833106995,
+          "parameter_l2_dp_to_retrain": 7.418828358964541,
+          "parameter_relative_l2_dp_to_retrain": 0.018858815825880313,
+          "parameter_l2_cached_to_retrain": 7.429270107318081,
+          "parameter_relative_l2_cached_to_retrain": 0.018885358967138145,
+          "parameter_l2_eraser_to_retrain": 7.443109960181389,
+          "parameter_relative_l2_eraser_to_retrain": 0.018920540160660575,
+          "parameter_l2_finetune_to_retrain": 7.418828358964541,
+          "parameter_relative_l2_finetune_to_retrain": 0.018858815825880313,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -0.00017535651568323374,
+          "mub_eraser_js_test": -0.0002148086205124855,
+          "cached_runtime_s": 0.5821197675541043,
+          "eraser_runtime_s": 60.86983917001635,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 98,
+              "aggregation_normalizer": 49.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 98,
+              "aggregation_normalizer": 49.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.46481875,
+          "redundancy_signal": "dp_already_close"
+        },
+        {
+          "j": 4,
+          "deleted_clients": [
+            0,
+            71,
+            15,
+            21
+          ],
+          "m_dp_test_acc": 0.9020000100135803,
+          "m_dp_forgotten_acc": 0.8999999761581421,
+          "m_r_test_acc": 0.9057000279426575,
+          "m_r_forgotten_acc": 0.9037500023841858,
+          "m_cached_test_acc": 0.8938000202178955,
+          "m_cached_forgotten_acc": 0.8868749737739563,
+          "m_eraser_test_acc": 0.8985999822616577,
+          "m_eraser_forgotten_acc": 0.8931249976158142,
+          "m_ft_test_acc": 0.9020000100135803,
+          "m_ft_forgotten_acc": 0.8999999761581421,
+          "js_dp_to_retrain_test": 0.00135844387114048,
+          "js_dp_to_retrain_forget": 0.001355141052044928,
+          "js_cached_to_retrain_test": 0.0015755222411826253,
+          "js_cached_to_retrain_forget": 0.00158300984185189,
+          "js_eraser_to_retrain_test": 0.0016381863970309496,
+          "js_eraser_to_retrain_forget": 0.001639567781239748,
+          "js_ft_to_retrain_test": 0.00135844387114048,
+          "js_ft_to_retrain_forget": 0.001355141052044928,
+          "prediction_agreement_dp_to_retrain_test": 0.9472000002861023,
+          "prediction_agreement_dp_to_retrain_forget": 0.9518749713897705,
+          "prediction_agreement_cached_to_retrain_test": 0.9441999793052673,
+          "prediction_agreement_cached_to_retrain_forget": 0.9456250071525574,
+          "prediction_agreement_eraser_to_retrain_test": 0.9466000199317932,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9462500214576721,
+          "prediction_agreement_finetune_to_retrain_test": 0.9472000002861023,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9518749713897705,
+          "parameter_l2_dp_to_retrain": 7.495393174127469,
+          "parameter_relative_l2_dp_to_retrain": 0.01905342949520413,
+          "parameter_l2_cached_to_retrain": 7.515330948576979,
+          "parameter_relative_l2_cached_to_retrain": 0.0191041116903792,
+          "parameter_l2_eraser_to_retrain": 7.530371055165484,
+          "parameter_relative_l2_eraser_to_retrain": 0.019142343922341844,
+          "parameter_l2_finetune_to_retrain": 7.495393174127469,
+          "parameter_relative_l2_finetune_to_retrain": 0.01905342949520413,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -0.00021707837004214525,
+          "mub_eraser_js_test": -0.00027974252589046955,
+          "cached_runtime_s": 0.6628168597817421,
+          "eraser_runtime_s": 58.6298295725137,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 96,
+              "aggregation_normalizer": 48.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 96,
+              "aggregation_normalizer": 48.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.5070546875,
+          "redundancy_signal": "dp_already_close"
+        },
+        {
+          "j": 8,
+          "deleted_clients": [
+            0,
+            71,
+            15,
+            21,
+            18,
+            83,
+            96,
+            8
+          ],
+          "m_dp_test_acc": 0.9020000100135803,
+          "m_dp_forgotten_acc": 0.9021875262260437,
+          "m_r_test_acc": 0.8956999778747559,
+          "m_r_forgotten_acc": 0.8921874761581421,
+          "m_cached_test_acc": 0.8880000114440918,
+          "m_cached_forgotten_acc": 0.8887500166893005,
+          "m_eraser_test_acc": 0.8970000147819519,
+          "m_eraser_forgotten_acc": 0.8956249952316284,
+          "m_ft_test_acc": 0.9020000100135803,
+          "m_ft_forgotten_acc": 0.9021875262260437,
+          "js_dp_to_retrain_test": 0.0015471079386770725,
+          "js_dp_to_retrain_forget": 0.0015561111504212022,
+          "js_cached_to_retrain_test": 0.001823883387260139,
+          "js_cached_to_retrain_forget": 0.001824946841225028,
+          "js_eraser_to_retrain_test": 0.001803260063752532,
+          "js_eraser_to_retrain_forget": 0.0018029185011982918,
+          "js_ft_to_retrain_test": 0.0015471079386770725,
+          "js_ft_to_retrain_forget": 0.0015561111504212022,
+          "prediction_agreement_dp_to_retrain_test": 0.9355999827384949,
+          "prediction_agreement_dp_to_retrain_forget": 0.9346874952316284,
+          "prediction_agreement_cached_to_retrain_test": 0.9261000156402588,
+          "prediction_agreement_cached_to_retrain_forget": 0.9296875,
+          "prediction_agreement_eraser_to_retrain_test": 0.9318000078201294,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9321874976158142,
+          "prediction_agreement_finetune_to_retrain_test": 0.9355999827384949,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9346874952316284,
+          "parameter_l2_dp_to_retrain": 7.852618732977023,
+          "parameter_relative_l2_dp_to_retrain": 0.019961764620114626,
+          "parameter_l2_cached_to_retrain": 7.8711716946622055,
+          "parameter_relative_l2_cached_to_retrain": 0.020008927212207674,
+          "parameter_l2_eraser_to_retrain": 7.882485503343447,
+          "parameter_relative_l2_eraser_to_retrain": 0.020037687501422218,
+          "parameter_l2_finetune_to_retrain": 7.852618732977023,
+          "parameter_relative_l2_finetune_to_retrain": 0.019961764620114626,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -0.00027677544858306646,
+          "mub_eraser_js_test": -0.0002561521250754595,
+          "cached_runtime_s": 0.48427832033485174,
+          "eraser_runtime_s": 56.906499246135354,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 92,
+              "aggregation_normalizer": 46.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 92,
+              "aggregation_normalizer": 46.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.48819921875,
+          "redundancy_signal": "dp_already_close"
+        },
+        {
+          "j": 16,
+          "deleted_clients": [
+            0,
+            71,
+            15,
+            21,
+            18,
+            83,
+            96,
+            8,
+            49,
+            73,
+            58,
+            6,
+            46,
+            61,
+            9,
+            29
+          ],
+          "m_dp_test_acc": 0.9020000100135803,
+          "m_dp_forgotten_acc": 0.9024999737739563,
+          "m_r_test_acc": 0.9017000198364258,
+          "m_r_forgotten_acc": 0.8954687714576721,
+          "m_cached_test_acc": 0.8881999850273132,
+          "m_cached_forgotten_acc": 0.8864062428474426,
+          "m_eraser_test_acc": 0.8894000053405762,
+          "m_eraser_forgotten_acc": 0.8884375095367432,
+          "m_ft_test_acc": 0.9020000100135803,
+          "m_ft_forgotten_acc": 0.9024999737739563,
+          "js_dp_to_retrain_test": 0.001722963759675622,
+          "js_dp_to_retrain_forget": 0.0017045900458469987,
+          "js_cached_to_retrain_test": 0.0029585976153612137,
+          "js_cached_to_retrain_forget": 0.0029135262593626976,
+          "js_eraser_to_retrain_test": 0.003091576276347041,
+          "js_eraser_to_retrain_forget": 0.0030257964972406626,
+          "js_ft_to_retrain_test": 0.001722963759675622,
+          "js_ft_to_retrain_forget": 0.0017045900458469987,
+          "prediction_agreement_dp_to_retrain_test": 0.944599986076355,
+          "prediction_agreement_dp_to_retrain_forget": 0.9415624737739563,
+          "prediction_agreement_cached_to_retrain_test": 0.9319999814033508,
+          "prediction_agreement_cached_to_retrain_forget": 0.9268749952316284,
+          "prediction_agreement_eraser_to_retrain_test": 0.9333999752998352,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9317187666893005,
+          "prediction_agreement_finetune_to_retrain_test": 0.944599986076355,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9415624737739563,
+          "parameter_l2_dp_to_retrain": 8.030712782007752,
+          "parameter_relative_l2_dp_to_retrain": 0.020413714863160026,
+          "parameter_l2_cached_to_retrain": 8.161458563274874,
+          "parameter_relative_l2_cached_to_retrain": 0.02074606482645691,
+          "parameter_l2_eraser_to_retrain": 8.184312440061307,
+          "parameter_relative_l2_eraser_to_retrain": 0.020804158365212433,
+          "parameter_l2_finetune_to_retrain": 8.030712782007752,
+          "parameter_relative_l2_finetune_to_retrain": 0.020413714863160026,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -0.0012356338556855917,
+          "mub_eraser_js_test": -0.0013686125166714191,
+          "cached_runtime_s": 0.39808446913957596,
+          "eraser_runtime_s": 51.53745251707733,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 84,
+              "aggregation_normalizer": 42.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 84,
+              "aggregation_normalizer": 42.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.50137236328125,
+          "redundancy_signal": "dp_already_close"
+        }
+      ]
+    },
+    {
+      "seed": 1154,
+      "model_type": "dinov2",
+      "backbone_name": "dinov2_small",
+      "m_dp_test_acc": 0.9128000140190125,
+      "deletion_sequence": [
+        79,
+        53,
+        19,
+        44,
+        27,
+        60,
+        40,
+        82,
+        97,
+        63,
+        21,
+        15,
+        13,
+        33,
+        42,
+        61
+      ],
+      "deletion_results": [
+        {
+          "j": 2,
+          "deleted_clients": [
+            79,
+            53
+          ],
+          "m_dp_test_acc": 0.9128000140190125,
+          "m_dp_forgotten_acc": 0.9024999737739563,
+          "m_r_test_acc": 0.9049000144004822,
+          "m_r_forgotten_acc": 0.8987500071525574,
+          "m_cached_test_acc": 0.9114999771118164,
+          "m_cached_forgotten_acc": 0.9024999737739563,
+          "m_eraser_test_acc": 0.9117000102996826,
+          "m_eraser_forgotten_acc": 0.9024999737739563,
+          "m_ft_test_acc": 0.9128000140190125,
+          "m_ft_forgotten_acc": 0.9024999737739563,
+          "js_dp_to_retrain_test": 0.0012214023154228926,
+          "js_dp_to_retrain_forget": 0.0012286016717553139,
+          "js_cached_to_retrain_test": 0.0013033674331381917,
+          "js_cached_to_retrain_forget": 0.0013163989642634988,
+          "js_eraser_to_retrain_test": 0.001323811011388898,
+          "js_eraser_to_retrain_forget": 0.0013233956415206194,
+          "js_ft_to_retrain_test": 0.0012214023154228926,
+          "js_ft_to_retrain_forget": 0.0012286016717553139,
+          "prediction_agreement_dp_to_retrain_test": 0.9517999887466431,
+          "prediction_agreement_dp_to_retrain_forget": 0.9537500143051147,
+          "prediction_agreement_cached_to_retrain_test": 0.9516000151634216,
+          "prediction_agreement_cached_to_retrain_forget": 0.9549999833106995,
+          "prediction_agreement_eraser_to_retrain_test": 0.9510999917984009,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9537500143051147,
+          "prediction_agreement_finetune_to_retrain_test": 0.9517999887466431,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9537500143051147,
+          "parameter_l2_dp_to_retrain": 7.467194865729619,
+          "parameter_relative_l2_dp_to_retrain": 0.018981805145397154,
+          "parameter_l2_cached_to_retrain": 7.472047312700264,
+          "parameter_relative_l2_cached_to_retrain": 0.018994140192832153,
+          "parameter_l2_eraser_to_retrain": 7.479609725559401,
+          "parameter_relative_l2_eraser_to_retrain": 0.019013364044613495,
+          "parameter_l2_finetune_to_retrain": 7.467194865729619,
+          "parameter_relative_l2_finetune_to_retrain": 0.018981805145397154,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -8.196511771529913e-05,
+          "mub_eraser_js_test": -0.00010240869596600533,
+          "cached_runtime_s": 1.371807119809091,
+          "eraser_runtime_s": 127.09997386857867,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 98,
+              "aggregation_normalizer": 49.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 98,
+              "aggregation_normalizer": 49.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.4766125,
+          "redundancy_signal": "dp_already_close"
+        },
+        {
+          "j": 4,
+          "deleted_clients": [
+            79,
+            53,
+            19,
+            44
+          ],
+          "m_dp_test_acc": 0.9128000140190125,
+          "m_dp_forgotten_acc": 0.9131249785423279,
+          "m_r_test_acc": 0.9010999798774719,
+          "m_r_forgotten_acc": 0.9012500047683716,
+          "m_cached_test_acc": 0.9086999893188477,
+          "m_cached_forgotten_acc": 0.9112499952316284,
+          "m_eraser_test_acc": 0.910099983215332,
+          "m_eraser_forgotten_acc": 0.9100000262260437,
+          "m_ft_test_acc": 0.9128000140190125,
+          "m_ft_forgotten_acc": 0.9131249785423279,
+          "js_dp_to_retrain_test": 0.0013366935309022665,
+          "js_dp_to_retrain_forget": 0.001322240219451487,
+          "js_cached_to_retrain_test": 0.001537248259410262,
+          "js_cached_to_retrain_forget": 0.001531385350972414,
+          "js_eraser_to_retrain_test": 0.001514576026238501,
+          "js_eraser_to_retrain_forget": 0.0015008514747023582,
+          "js_ft_to_retrain_test": 0.0013366935309022665,
+          "js_ft_to_retrain_forget": 0.001322240219451487,
+          "prediction_agreement_dp_to_retrain_test": 0.9458000063896179,
+          "prediction_agreement_dp_to_retrain_forget": 0.9543750286102295,
+          "prediction_agreement_cached_to_retrain_test": 0.9419000148773193,
+          "prediction_agreement_cached_to_retrain_forget": 0.949999988079071,
+          "prediction_agreement_eraser_to_retrain_test": 0.9435999989509583,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9537500143051147,
+          "prediction_agreement_finetune_to_retrain_test": 0.9458000063896179,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9543750286102295,
+          "parameter_l2_dp_to_retrain": 7.566125960611456,
+          "parameter_relative_l2_dp_to_retrain": 0.0192331490810753,
+          "parameter_l2_cached_to_retrain": 7.577324593101992,
+          "parameter_relative_l2_cached_to_retrain": 0.019261616089068023,
+          "parameter_l2_eraser_to_retrain": 7.587149950920095,
+          "parameter_relative_l2_eraser_to_retrain": 0.019286592222517853,
+          "parameter_l2_finetune_to_retrain": 7.566125960611456,
+          "parameter_relative_l2_finetune_to_retrain": 0.0192331490810753,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -0.0002005547285079956,
+          "mub_eraser_js_test": -0.00017788249533623457,
+          "cached_runtime_s": 1.3250050758942962,
+          "eraser_runtime_s": 115.31011647824198,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 96,
+              "aggregation_normalizer": 48.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 96,
+              "aggregation_normalizer": 48.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.5076109375,
+          "redundancy_signal": "dp_already_close"
+        },
+        {
+          "j": 8,
+          "deleted_clients": [
+            79,
+            53,
+            19,
+            44,
+            27,
+            60,
+            40,
+            82
+          ],
+          "m_dp_test_acc": 0.9128000140190125,
+          "m_dp_forgotten_acc": 0.9140625,
+          "m_r_test_acc": 0.9003000259399414,
+          "m_r_forgotten_acc": 0.8996875286102295,
+          "m_cached_test_acc": 0.913100004196167,
+          "m_cached_forgotten_acc": 0.9134374856948853,
+          "m_eraser_test_acc": 0.9103999733924866,
+          "m_eraser_forgotten_acc": 0.9090625047683716,
+          "m_ft_test_acc": 0.9128000140190125,
+          "m_ft_forgotten_acc": 0.9140625,
+          "js_dp_to_retrain_test": 0.0013701390707865357,
+          "js_dp_to_retrain_forget": 0.0013826466165482998,
+          "js_cached_to_retrain_test": 0.001548394444398582,
+          "js_cached_to_retrain_forget": 0.001559630036354065,
+          "js_eraser_to_retrain_test": 0.0015687694540247321,
+          "js_eraser_to_retrain_forget": 0.0015811972552910447,
+          "js_ft_to_retrain_test": 0.0013701390707865357,
+          "js_ft_to_retrain_forget": 0.0013826466165482998,
+          "prediction_agreement_dp_to_retrain_test": 0.9435999989509583,
+          "prediction_agreement_dp_to_retrain_forget": 0.9462500214576721,
+          "prediction_agreement_cached_to_retrain_test": 0.9429000020027161,
+          "prediction_agreement_cached_to_retrain_forget": 0.9437500238418579,
+          "prediction_agreement_eraser_to_retrain_test": 0.9402999877929688,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9453125,
+          "prediction_agreement_finetune_to_retrain_test": 0.9435999989509583,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9462500214576721,
+          "parameter_l2_dp_to_retrain": 7.672636292121063,
+          "parameter_relative_l2_dp_to_retrain": 0.01950409736045561,
+          "parameter_l2_cached_to_retrain": 7.686910590022453,
+          "parameter_relative_l2_cached_to_retrain": 0.01954038310181243,
+          "parameter_l2_eraser_to_retrain": 7.697005091121754,
+          "parameter_relative_l2_eraser_to_retrain": 0.019566043660289335,
+          "parameter_l2_finetune_to_retrain": 7.672636292121063,
+          "parameter_relative_l2_finetune_to_retrain": 0.01950409736045561,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -0.00017825537361204624,
+          "mub_eraser_js_test": -0.00019863038323819637,
+          "cached_runtime_s": 1.39378263335675,
+          "eraser_runtime_s": 107.6483900109306,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 92,
+              "aggregation_normalizer": 46.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 92,
+              "aggregation_normalizer": 46.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.504121875,
+          "redundancy_signal": "dp_already_close"
+        },
+        {
+          "j": 16,
+          "deleted_clients": [
+            79,
+            53,
+            19,
+            44,
+            27,
+            60,
+            40,
+            82,
+            97,
+            63,
+            21,
+            15,
+            13,
+            33,
+            42,
+            61
+          ],
+          "m_dp_test_acc": 0.9128000140190125,
+          "m_dp_forgotten_acc": 0.9165624976158142,
+          "m_r_test_acc": 0.9003999829292297,
+          "m_r_forgotten_acc": 0.9026562571525574,
+          "m_cached_test_acc": 0.9067000150680542,
+          "m_cached_forgotten_acc": 0.9053124785423279,
+          "m_eraser_test_acc": 0.9083999991416931,
+          "m_eraser_forgotten_acc": 0.9100000262260437,
+          "m_ft_test_acc": 0.9128000140190125,
+          "m_ft_forgotten_acc": 0.9165624976158142,
+          "js_dp_to_retrain_test": 0.0016275005182251334,
+          "js_dp_to_retrain_forget": 0.0016344173345714808,
+          "js_cached_to_retrain_test": 0.0030315725598484278,
+          "js_cached_to_retrain_forget": 0.0030646598897874355,
+          "js_eraser_to_retrain_test": 0.0031309532932937145,
+          "js_eraser_to_retrain_forget": 0.003151837969198823,
+          "js_ft_to_retrain_test": 0.0016275005182251334,
+          "js_ft_to_retrain_forget": 0.0016344173345714808,
+          "prediction_agreement_dp_to_retrain_test": 0.9440000057220459,
+          "prediction_agreement_dp_to_retrain_forget": 0.9449999928474426,
+          "prediction_agreement_cached_to_retrain_test": 0.9243000149726868,
+          "prediction_agreement_cached_to_retrain_forget": 0.9232812523841858,
+          "prediction_agreement_eraser_to_retrain_test": 0.9398999810218811,
+          "prediction_agreement_eraser_to_retrain_forget": 0.9393749833106995,
+          "prediction_agreement_finetune_to_retrain_test": 0.9440000057220459,
+          "prediction_agreement_finetune_to_retrain_forget": 0.9449999928474426,
+          "parameter_l2_dp_to_retrain": 8.104401668398777,
+          "parameter_relative_l2_dp_to_retrain": 0.02060077486194676,
+          "parameter_l2_cached_to_retrain": 8.248274257634717,
+          "parameter_relative_l2_cached_to_retrain": 0.02096648808063037,
+          "parameter_l2_eraser_to_retrain": 8.26987374109923,
+          "parameter_relative_l2_eraser_to_retrain": 0.02102139233071484,
+          "parameter_l2_finetune_to_retrain": 8.104401668398777,
+          "parameter_relative_l2_finetune_to_retrain": 0.02060077486194676,
+          "mub_js_test": 0.0,
+          "mub_cached_js_test": -0.0014040720416232944,
+          "mub_eraser_js_test": -0.001503452775068581,
+          "cached_runtime_s": 0.5792522421106696,
+          "eraser_runtime_s": 56.94707279559225,
+          "training_mechanism_ledgers": {
+            "original_full_model": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 100,
+              "aggregation_normalizer": 50.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "exact_retrain_reference": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 84,
+              "aggregation_normalizer": 42.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 40,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 63.99999999999494,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            },
+            "retained_finetune_component": {
+              "enabled": true,
+              "adjacency": "add/remove one complete client dataset",
+              "accountant": "dp-accounting RDP accountant; Poisson-sampled Gaussian mechanism",
+              "sampling": "independent Poisson client participation",
+              "client_sample_rate": 0.5,
+              "public_population_size": 84,
+              "aggregation_normalizer": 42.0,
+              "mechanism_version": "poisson_sum_fixed_public_normalizer_v2",
+              "rounds": 4,
+              "release_count": 1,
+              "clip_norm": 1.0,
+              "noise_multiplier": 0.6304215961383466,
+              "epsilon": 15.5139679934648,
+              "delta": 1e-05,
+              "sampling_rng": "Python secrets.SystemRandom (OS-backed CSPRNG)",
+              "noise_rng": "Torch PRNG seeded from OS entropy (not a CSPRNG)",
+              "floating_point_noise_mitigation": false,
+              "threat_model_note": "Simulator assumes a server-side Gaussian mechanism and protects a final model release. Each round sums clipped client updates, adds Gaussian noise to that sum, and divides by the fixed public normalizer q*N; this matches the Poisson-sampled Gaussian accountant under add/remove-one client adjacency. Client sampling uses an OS-backed CSPRNG. Noise uses an OS-entropy-seeded Torch PRNG, not a CSPRNG; this is exploratory and is not secure-RNG-audited evidence.  No mechanism randomness seed is serialized. It is not a production secure-aggregation implementation. The reported epsilon composes all rounds of this training run and bounds model checkpoints derived from its noised aggregates, provided sampled-client identities and plaintext individual updates are not released. Independently trained models or raw-data unlearning computations need separate privacy analysis."
+            }
+          },
+          "privacy_scope_note": "These are per-training-mechanism ledgers, not an end-to-end privacy guarantee for this result. Cached reconstruction and FedEraser-style processing access individual historical client updates; fine-tuning accesses retained client data and starts from the original model. Any published checkpoint, update history, or data-dependent metric needs its own release analysis.",
+          "tc_umia_fvu_auc": 0.49195292968750004,
+          "redundancy_signal": "dp_already_close"
+        }
+      ]
+    }
+  ],
+  "analysis": {
+    "j_2": {
+      "n_seed_runs": 3,
+      "metrics": {
+        "m_dp_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9062000115712484,
+          "sd": 0.005786192602539583,
+          "ci_95": [
+            0.8918263123200072,
+            0.9205737108224896
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.9038000106811523
+            },
+            {
+              "seed": 1077,
+              "value": 0.9020000100135803
+            },
+            {
+              "seed": 1154,
+              "value": 0.9128000140190125
+            }
+          ]
+        },
+        "m_retrain_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9024666746457418,
+          "sd": 0.0021362012319505706,
+          "ci_95": [
+            0.8971600566056317,
+            0.9077732926858519
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.9016000032424927
+            },
+            {
+              "seed": 1077,
+              "value": 0.9009000062942505
+            },
+            {
+              "seed": 1154,
+              "value": 0.9049000144004822
+            }
+          ]
+        },
+        "m_finetune_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9062000115712484,
+          "sd": 0.005786192602539583,
+          "ci_95": [
+            0.8918263123200072,
+            0.9205737108224896
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.9038000106811523
+            },
+            {
+              "seed": 1077,
+              "value": 0.9020000100135803
+            },
+            {
+              "seed": 1154,
+              "value": 0.9128000140190125
+            }
+          ]
+        },
+        "js_dp_to_retrain_test": {
+          "n_seeds": 3,
+          "mean": 0.001304994764116903,
+          "sd": 0.00011262275725379218,
+          "ci_95": [
+            0.001025224325624922,
+            0.0015847652026088842
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0012605175143107772
+            },
+            {
+              "seed": 1077,
+              "value": 0.0014330644626170397
+            },
+            {
+              "seed": 1154,
+              "value": 0.0012214023154228926
+            }
+          ]
+        },
+        "js_finetune_to_retrain_test": {
+          "n_seeds": 3,
+          "mean": 0.001304994764116903,
+          "sd": 0.00011262275725379218,
+          "ci_95": [
+            0.001025224325624922,
+            0.0015847652026088842
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0012605175143107772
+            },
+            {
+              "seed": 1077,
+              "value": 0.0014330644626170397
+            },
+            {
+              "seed": 1154,
+              "value": 0.0012214023154228926
+            }
+          ]
+        },
+        "mub_js_test": {
+          "n_seeds": 3,
+          "mean": 0.0,
+          "sd": 0.0,
+          "ci_95": [
+            0.0,
+            0.0
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0
+            },
+            {
+              "seed": 1077,
+              "value": 0.0
+            },
+            {
+              "seed": 1154,
+              "value": 0.0
+            }
+          ]
+        },
+        "tc_umia_fvu_auc": {
+          "n_seeds": 3,
+          "mean": 0.4795916666666667,
+          "sd": 0.016465888429442056,
+          "ci_95": [
+            0.43868813226212316,
+            0.5204952010712103
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.49734375000000003
+            },
+            {
+              "seed": 1077,
+              "value": 0.46481875
+            },
+            {
+              "seed": 1154,
+              "value": 0.4766125
+            }
+          ]
+        }
+      },
+      "equivalence_testing": {
+        "status": "not_performed",
+        "reason": "No joint endpoint margins were preregistered for this confirmatory run."
+      }
+    },
+    "j_4": {
+      "n_seed_runs": 3,
+      "metrics": {
+        "m_dp_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9062000115712484,
+          "sd": 0.005786192602539583,
+          "ci_95": [
+            0.8918263123200072,
+            0.9205737108224896
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.9038000106811523
+            },
+            {
+              "seed": 1077,
+              "value": 0.9020000100135803
+            },
+            {
+              "seed": 1154,
+              "value": 0.9128000140190125
+            }
+          ]
+        },
+        "m_retrain_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9026666680971781,
+          "sd": 0.00262744263379627,
+          "ci_95": [
+            0.896139738765185,
+            0.9091935974291712
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.901199996471405
+            },
+            {
+              "seed": 1077,
+              "value": 0.9057000279426575
+            },
+            {
+              "seed": 1154,
+              "value": 0.9010999798774719
+            }
+          ]
+        },
+        "m_finetune_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9062000115712484,
+          "sd": 0.005786192602539583,
+          "ci_95": [
+            0.8918263123200072,
+            0.9205737108224896
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.9038000106811523
+            },
+            {
+              "seed": 1077,
+              "value": 0.9020000100135803
+            },
+            {
+              "seed": 1154,
+              "value": 0.9128000140190125
+            }
+          ]
+        },
+        "js_dp_to_retrain_test": {
+          "n_seeds": 3,
+          "mean": 0.0013373533341412742,
+          "sd": 2.0768497456594738e-05,
+          "ci_95": [
+            0.0012857615263935957,
+            0.0013889451418889528
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0013169226003810763
+            },
+            {
+              "seed": 1077,
+              "value": 0.00135844387114048
+            },
+            {
+              "seed": 1154,
+              "value": 0.0013366935309022665
+            }
+          ]
+        },
+        "js_finetune_to_retrain_test": {
+          "n_seeds": 3,
+          "mean": 0.0013373533341412742,
+          "sd": 2.0768497456594738e-05,
+          "ci_95": [
+            0.0012857615263935957,
+            0.0013889451418889528
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0013169226003810763
+            },
+            {
+              "seed": 1077,
+              "value": 0.00135844387114048
+            },
+            {
+              "seed": 1154,
+              "value": 0.0013366935309022665
+            }
+          ]
+        },
+        "mub_js_test": {
+          "n_seeds": 3,
+          "mean": 0.0,
+          "sd": 0.0,
+          "ci_95": [
+            0.0,
+            0.0
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0
+            },
+            {
+              "seed": 1077,
+              "value": 0.0
+            },
+            {
+              "seed": 1154,
+              "value": 0.0
+            }
+          ]
+        },
+        "tc_umia_fvu_auc": {
+          "n_seeds": 3,
+          "mean": 0.5025375,
+          "sd": 0.008310380221963029,
+          "ci_95": [
+            0.48189337109189334,
+            0.5231816289081066
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.49294687499999995
+            },
+            {
+              "seed": 1077,
+              "value": 0.5070546875
+            },
+            {
+              "seed": 1154,
+              "value": 0.5076109375
+            }
+          ]
+        }
+      },
+      "equivalence_testing": {
+        "status": "not_performed",
+        "reason": "No joint endpoint margins were preregistered for this confirmatory run."
+      }
+    },
+    "j_8": {
+      "n_seed_runs": 3,
+      "metrics": {
+        "m_dp_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9062000115712484,
+          "sd": 0.005786192602539583,
+          "ci_95": [
+            0.8918263123200072,
+            0.9205737108224896
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.9038000106811523
+            },
+            {
+              "seed": 1077,
+              "value": 0.9020000100135803
+            },
+            {
+              "seed": 1154,
+              "value": 0.9128000140190125
+            }
+          ]
+        },
+        "m_retrain_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9010666608810425,
+          "sd": 0.005788203722513171,
+          "ci_95": [
+            0.8866879657308321,
+            0.9154453560312529
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.9071999788284302
+            },
+            {
+              "seed": 1077,
+              "value": 0.8956999778747559
+            },
+            {
+              "seed": 1154,
+              "value": 0.9003000259399414
+            }
+          ]
+        },
+        "m_finetune_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9062000115712484,
+          "sd": 0.005786192602539583,
+          "ci_95": [
+            0.8918263123200072,
+            0.9205737108224896
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.9038000106811523
+            },
+            {
+              "seed": 1077,
+              "value": 0.9020000100135803
+            },
+            {
+              "seed": 1154,
+              "value": 0.9128000140190125
+            }
+          ]
+        },
+        "js_dp_to_retrain_test": {
+          "n_seeds": 3,
+          "mean": 0.001428935443982482,
+          "sd": 0.0001023407929604852,
+          "ci_95": [
+            0.0011747068207420585,
+            0.0016831640672229054
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0013695593224838376
+            },
+            {
+              "seed": 1077,
+              "value": 0.0015471079386770725
+            },
+            {
+              "seed": 1154,
+              "value": 0.0013701390707865357
+            }
+          ]
+        },
+        "js_finetune_to_retrain_test": {
+          "n_seeds": 3,
+          "mean": 0.001428935443982482,
+          "sd": 0.0001023407929604852,
+          "ci_95": [
+            0.0011747068207420585,
+            0.0016831640672229054
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0013695593224838376
+            },
+            {
+              "seed": 1077,
+              "value": 0.0015471079386770725
+            },
+            {
+              "seed": 1154,
+              "value": 0.0013701390707865357
+            }
+          ]
+        },
+        "mub_js_test": {
+          "n_seeds": 3,
+          "mean": 0.0,
+          "sd": 0.0,
+          "ci_95": [
+            0.0,
+            0.0
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0
+            },
+            {
+              "seed": 1077,
+              "value": 0.0
+            },
+            {
+              "seed": 1154,
+              "value": 0.0
+            }
+          ]
+        },
+        "tc_umia_fvu_auc": {
+          "n_seeds": 3,
+          "mean": 0.4943069010416667,
+          "sd": 0.008584331898302789,
+          "ci_95": [
+            0.4729822384431757,
+            0.5156315636401577
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.49059960937499997
+            },
+            {
+              "seed": 1077,
+              "value": 0.48819921875
+            },
+            {
+              "seed": 1154,
+              "value": 0.504121875
+            }
+          ]
+        }
+      },
+      "equivalence_testing": {
+        "status": "not_performed",
+        "reason": "No joint endpoint margins were preregistered for this confirmatory run."
+      }
+    },
+    "j_16": {
+      "n_seed_runs": 3,
+      "metrics": {
+        "m_dp_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9062000115712484,
+          "sd": 0.005786192602539583,
+          "ci_95": [
+            0.8918263123200072,
+            0.9205737108224896
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.9038000106811523
+            },
+            {
+              "seed": 1077,
+              "value": 0.9020000100135803
+            },
+            {
+              "seed": 1154,
+              "value": 0.9128000140190125
+            }
+          ]
+        },
+        "m_retrain_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.8992666602134705,
+          "sd": 0.0031564919085896527,
+          "ci_95": [
+            0.8914254996266053,
+            0.9071078208003356
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.8956999778747559
+            },
+            {
+              "seed": 1077,
+              "value": 0.9017000198364258
+            },
+            {
+              "seed": 1154,
+              "value": 0.9003999829292297
+            }
+          ]
+        },
+        "m_finetune_test_acc": {
+          "n_seeds": 3,
+          "mean": 0.9062000115712484,
+          "sd": 0.005786192602539583,
+          "ci_95": [
+            0.8918263123200072,
+            0.9205737108224896
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.9038000106811523
+            },
+            {
+              "seed": 1077,
+              "value": 0.9020000100135803
+            },
+            {
+              "seed": 1154,
+              "value": 0.9128000140190125
+            }
+          ]
+        },
+        "js_dp_to_retrain_test": {
+          "n_seeds": 3,
+          "mean": 0.0016069152625277638,
+          "sd": 0.00012759268956130147,
+          "ci_95": [
+            0.00128995745064881,
+            0.0019238730744067178
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0014702815096825361
+            },
+            {
+              "seed": 1077,
+              "value": 0.001722963759675622
+            },
+            {
+              "seed": 1154,
+              "value": 0.0016275005182251334
+            }
+          ]
+        },
+        "js_finetune_to_retrain_test": {
+          "n_seeds": 3,
+          "mean": 0.0016069152625277638,
+          "sd": 0.00012759268956130147,
+          "ci_95": [
+            0.00128995745064881,
+            0.0019238730744067178
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0014702815096825361
+            },
+            {
+              "seed": 1077,
+              "value": 0.001722963759675622
+            },
+            {
+              "seed": 1154,
+              "value": 0.0016275005182251334
+            }
+          ]
+        },
+        "mub_js_test": {
+          "n_seeds": 3,
+          "mean": 0.0,
+          "sd": 0.0,
+          "ci_95": [
+            0.0,
+            0.0
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.0
+            },
+            {
+              "seed": 1077,
+              "value": 0.0
+            },
+            {
+              "seed": 1154,
+              "value": 0.0
+            }
+          ]
+        },
+        "tc_umia_fvu_auc": {
+          "n_seeds": 3,
+          "mean": 0.49658440755208333,
+          "sd": 0.00471166597907203,
+          "ci_95": [
+            0.4848799804084445,
+            0.5082888346957222
+          ],
+          "per_seed": [
+            {
+              "seed": 1000,
+              "value": 0.4964279296875
+            },
+            {
+              "seed": 1077,
+              "value": 0.50137236328125
+            },
+            {
+              "seed": 1154,
+              "value": 0.49195292968750004
+            }
+          ]
+        }
+      },
+      "equivalence_testing": {
+        "status": "not_performed",
+        "reason": "No joint endpoint margins were preregistered for this confirmatory run."
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "expected_runs": 100,
+  "complete_evaluated_runs": 100,
+  "unique_run_tuples": 100,
+  "missing_runs": [],
+  "invalid_runs": [],
+  "all_runs_complete": true,
+  "cached_reconstruction_and_federaser_evaluated": true,
+  "secure_aggregation": false
+}

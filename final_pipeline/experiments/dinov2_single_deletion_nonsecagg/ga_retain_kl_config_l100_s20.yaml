@@ -1,0 +1,11 @@
+experiment_name: gradient_ascent_retain_kl_single_deletion_nonsecagg_l100_s20
+base_config: experiments/dinov2_single_deletion_nonsecagg/config.yaml
+output_root: results/ga_retain_kl_single_deletion_nonsecagg_l100_s20
+reference_root: results/dinov2_single_deletion_nonsecagg_full_metrics
+unlearning_steps: 20
+learning_rate: 0.05
+retain_kl_weight: 100.0
+retain_batch_size: 1024
+seeds: [20260918, 20260919, 20260920, 20260921, 20260922]
+alpha_values: [0.1, 1, 5, 20, 100]
+epsilon_values: [8, 16, 32, 64]
