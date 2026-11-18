@@ -1,237 +1,132 @@
-# DP-ForgetBench: A Privacy-Aligned Audit of Federated Unlearning
+# DP-ForgetBench: final reproducible pipeline
 
-**When is explicit client unlearning redundant? A privacy-aligned audit of differentially private federated learning.**
+A compact, standalone package for the CIFAR-10 **single-client deletion** experiments. It contains the runnable code, fixed experiment configurations, dependency snapshot, and aggregate results/audits. The rest of the research workspace is intentionally not copied here.
 
-This repository builds a rigorous, reproducible benchmark for client deletion in federated learning (FL). The core objective is not to claim that Differential Privacy (DP) perfectly deletes data, nor is it to inflate exploratory metrics to claim "State-of-the-Art" (SOTA). 
+## What this pipeline studies
 
-The goal is sharper and more scientifically grounded: **To compare DP-only model release, explicit federated unlearning baselines, and exact retraining references under a privacy contract where the unit of privacy matches the unit of the deletion request.**
+The classifier is trained on cached embeddings from a **frozen DINOv2 ViT-S/14 backbone** (384-dimensional features) using a 3,850-parameter linear head. Federated learning trains the head across 100 clients. The single deletion request removes all data belonging to client 2. The alpha/epsilon grid is `alpha ∈ {0.1, 1, 5, 20, 100}`, `epsilon ∈ {8, 16, 32, 64}`, with five seeds per combination.
 
----
+The baseline grid evaluates DP-only/no action, retained-data fine-tuning, Cached Reconstruction, FedEraser-style recalibration, and target retraining. A second grid evaluates exploratory gradient ascent with retained-logit KL regularization (GA+retain-KL). That second stage reads deleted and retained data and is **non-private**; the original DP ledger does not cover it. This is a frozen-feature head study, not full-backbone training or unlearning.
 
-## 🚀 Phase 2 Major Upgrades & Current Status
+## Contents
 
-In the most recent phase of development, the DP-ForgetBench execution pipeline was dramatically upgraded to solve critical blockers and formalize the evaluation framework. 
+```text
+final_pipeline/
+├── README.md
+├── requirements-lock-linux-cuda.txt
+├── .gitignore
+├── src/dp_forgetbench/                  # core data, FL, DP, and evaluation code
+├── experiments/dinov2_single_deletion_nonsecagg/
+│   ├── config.yaml                      # baseline grid
+│   ├── prepare_features.py              # download/preprocess/cache frozen features
+│   ├── run_grid.py                      # five-method baseline grid
+│   ├── summarize_grid.py                # baseline schema/audit/CSV output
+│   ├── format_metrics_schema.py
+│   ├── ga_retain_kl_config_l100_s20.yaml
+│   ├── run_ga_retain_kl_grid.py         # GA+retain-KL candidate grid
+│   └── summarize_ga_retain_kl_grid.py
+├── results/                             # aggregate CSVs and audit receipts only
+└── docs/                                # protocol and result interpretation
+```
 
-### 1. Architecture & Convergence Fixes
-* **The Problem:** Early CIFAR-10 experiments under DP-FL collapsed to chance-level accuracy (~10%).
-* **The Fix:** We audited the model and found a flaw in `SmallGroupNormCNN` where aggressive `AdaptiveAvgPool2d((1, 1))` pooling was destroying spatial features. This was replaced with `Flatten(1)`.
-* **DP Hyperparameter Sweep:** We systematically swept DP hyperparameters and scaled the population size to $N=100$ clients ($20,000$ samples) with `noise_multiplier=0.5`. The model now successfully learns under strict client-level DP, achieving **>54% accuracy** and breaking the random-chance plateau.
+Per-run JSONs, model checkpoints, CIFAR-10 files, and embedding caches are not bundled. The detailed per-run outputs are data-dependent research artifacts and should be reviewed before any public release. Running the scripts writes those files locally under `results/`.
 
-### 2. Retrain Ensemble & Validity Gating
-* **Retrain Variability:** A single target retrain ($M_R$) is too statistically noisy to serve as the ground-truth "gold standard" for unlearning. We implemented **Retrain Ensembles**, where the pipeline automatically trains $N$ independent target retrains using different random seeds to form an empirical distribution of retrain variability.
-* **Validity Gate Layer:** The execution pipeline (`run.py`) now includes an automated validity check. If the median test accuracy of the retrain ensemble falls below a threshold (e.g., 40%), the run is explicitly flagged as `INVALID`.
+## Environment
 
-### 3. Formalizing Redundancy: Marginal Unlearning Benefit (MUB)
-We formalized the definition of redundancy by introducing the **Marginal Unlearning Benefit (MUB)**. 
-Calculated via `scripts/aggregate_mub.py` with true **95% Bootstrap Confidence Intervals** across the target retrain ensemble, MUB measures the exact gain of applying an explicit unlearning algorithm over doing nothing (DP-only).
-* **Utility MUB:** Does unlearning bring test accuracy closer to the retrain ensemble?
-* **Alignment MUB:** Does unlearning match the predictive behavior of the retrain ensemble better than DP-only? (Measured via Jensen-Shannon Divergence).
-* **Privacy MUB:** Does unlearning reduce the Membership Inference Attack (MIA) advantage?
+Use Python 3.10+ and a CUDA-enabled PyTorch install compatible with the host's driver. `requirements-lock-linux-cuda.txt` records the tested Linux/CUDA dependency versions; exact CUDA wheels can be platform-specific. Install a matching PyTorch/torchvision pair first if the listed CUDA build is not compatible with your machine, then install the remaining packages:
 
-The output pipeline embeds a **4-way redundancy multi-criterion classifier** (`REDUNDANT`, `UNLEARNING-BENEFICIAL`, `UNLEARNING-HARMFUL`, `INCONCLUSIVE`) strictly based on equivalence to the retrain variability bounds.
-
----
-
-## 🔬 The Evaluation Framework
-
-The benchmark rigorously evaluates three distinct outcomes for every configuration:
-
-1. **$M_{DP}$ (DP-Only / No Action):** A model trained on all data with client-level DP, left completely unchanged after a deletion request.
-2. **$M_U$ (Explicit Unlearning):** The model obtained by applying a specific federated unlearning algorithm after the deletion request.
-3. **$M_R$ (Exact Retrain):** The gold-standard models, trained from scratch on the dataset *without* the deleted client's data.
-
-By comparing $M_U$ and $M_{DP}$ against the $M_R$ ensemble, we can map the **Redundancy Frontier**—the specific combinations of privacy budget ($\epsilon$), data heterogeneity ($\alpha$), and deletion size where explicit unlearning adds material benefit vs. where it is statistically redundant.
-
----
-
-## 🔒 The Privacy Rule: Client-Level DP
-
-The primary experiment utilizes **client-level central DP**:
-* Whole client updates are L2-clipped.
-* Gaussian noise is added to the aggregate at the server.
-* The DP accountant strictly tracks client-sampling privacy loss. 
-
-*Note: Example-level DP-SGD belongs only to a separate record-deletion control and must never be conflated with client-level removal guarantees.*
-
----
-
-## 🛠️ Quick Start Guide
-
-Python 3.10-3.13 is supported.
-
-### 1. Installation
-```powershell
+```bash
+cd final_pipeline
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+source .venv/bin/activate
+python -m pip install --upgrade pip
+# Install the CUDA-compatible torch and torchvision pair for your host first.
 python -m pip install -r requirements.txt
 ```
 
-### 2. Run a Deterministic Smoke Test
-```powershell
-python -m dp_forgetbench.run --config configs/phase0_toy.yaml --mode full
+The scripts load DINOv2-S/14 through PyTorch Hub during feature extraction, so the first extraction needs network access to fetch the model weights. CIFAR-10 can also be downloaded by the preparation script. Neither download is included in this folder.
+
+## Reproduce the study
+
+Run from `final_pipeline/`.
+
+### 1. Extract frozen features once
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python experiments/dinov2_single_deletion_nonsecagg/prepare_features.py --download
 ```
 
-### 3. Execute the Phase 2 DP Sweep & Pilot
-To run the validated configuration that achieves >54% accuracy under client-level DP:
-```powershell
-python scripts/run_dp_sweep.py
-# Or run the pilot directly:
-python -m dp_forgetbench.run --config configs/phase2_private_pilot.yaml --mode full
+This creates `results/dinov2_single_deletion_full_metrics/feature_cache.pt`. It is a local cache and is ignored by Git.
+
+### 2. Run and audit the baseline grid
+
+Single-GPU form:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python experiments/dinov2_single_deletion_nonsecagg/run_grid.py \
+  --config experiments/dinov2_single_deletion_nonsecagg/config.yaml
 ```
 
-### 4. Validate Artifacts
-To check if a run passed the Validity Gate (accuracy >40%):
-```powershell
-python scripts/validate_artifact.py results\<run-dir>
+To split the grid across eight GPUs, launch one process per GPU with a distinct worker ID (each process must use the same `--num-workers`):
+
+```bash
+for worker in {0..7}; do
+  CUDA_VISIBLE_DEVICES=$worker OMP_NUM_THREADS=4 \
+    python experiments/dinov2_single_deletion_nonsecagg/run_grid.py \
+      --config experiments/dinov2_single_deletion_nonsecagg/config.yaml \
+      --worker-id $worker --num-workers 8 \
+      > results/baseline_worker${worker}.log 2>&1 &
+done
+wait
 ```
 
-### 5. Generate Documentation PDFs
-```powershell
-python scripts/build_pdf.py RESEARCH_GRADE_PLAN.md reports/RESEARCH_GRADE_PLAN.pdf
-python scripts/build_pdf.py README.md reports/README.pdf
+After all workers finish successfully:
+
+```bash
+python experiments/dinov2_single_deletion_nonsecagg/format_metrics_schema.py
+python experiments/dinov2_single_deletion_nonsecagg/summarize_grid.py
 ```
 
----
+### 3. Run and audit GA+retain-KL
 
-## 📁 Repository Layout
+Run this after the baseline grid if you want each cell to include a descriptive baseline reference. The candidate's DP replay is independently retrained because the earlier baseline grid did not save checkpoints; treat the historical baseline references as descriptive, not paired comparisons.
 
-```text
-configs/                 Immutable YAML experiment configurations (sweeps, pilots, grids)
-docs/                    Protocol and threat-model documentation
-partitions/              Versioned deletion manifests generated by runs
-reports/                 PDFs, result summaries, validity notices
-results/                 Raw experiment outputs (metrics, privacy ledgers, metadata)
-scripts/                 Grid generation, validation, MUB aggregation, and PDF helpers
-src/dp_forgetbench/      Core Benchmark Implementation (FL, DP, Unlearning, Evaluation)
-tests/                   Pytest suite for determinism, privacy, deletion, and smoke testing
+```bash
+CUDA_VISIBLE_DEVICES=0 python experiments/dinov2_single_deletion_nonsecagg/run_ga_retain_kl_grid.py \
+  --config experiments/dinov2_single_deletion_nonsecagg/ga_retain_kl_config_l100_s20.yaml
+python experiments/dinov2_single_deletion_nonsecagg/summarize_ga_retain_kl_grid.py \
+  --config experiments/dinov2_single_deletion_nonsecagg/ga_retain_kl_config_l100_s20.yaml
 ```
 
-## 📊 What Each Run Outputs
+The worker flags shown above also apply to the GA+KL runner for multi-GPU execution. Do not run two processes on the same worker ID.
 
-Inside every result directory under `results/`, the framework securely logs:
-* `metrics.json`: Utility, deleted/retained metrics, JS alignment, attack diagnostics, and computational cost.
-* `privacy_ledger.json`: The exact DP mechanism, $\epsilon$, $\delta$, sampling rate, and release counts (mathematically validated in Phase 6).
-* `run_metadata.json`: Configuration hashes, runtime details, deletion manifest checksums, and reference configs.
+## Current aggregate findings
 
----
+These are results from the included completed run artifacts, not a promise that a rerun will produce identical GPU floating-point outputs.
 
----
+- The baseline's strongest listed test-accuracy cell was `alpha=100, epsilon=64`: DP-only **88.31%**, retained fine-tuning **89.03%**, Cached Reconstruction **88.23%**, FedEraser-style **87.73%**, target retraining **87.80%** (five seeds).
+- Across the 20 alpha/epsilon cells, equal-weight means from the completed baseline grid were: DP-only **75.86%**, fine-tuning **78.51%**, Cached Reconstruction **75.05%**, FedEraser-style **74.56%**, target retraining **75.42%** test accuracy.
+- Across the GA+KL grid, the paired candidate-minus-fresh-DP-replay changes averaged over cells were **−0.74 percentage points test accuracy**, **−3.91 points forgotten-client accuracy**, and **−0.68 points retained-data accuracy**. The largest forgotten-accuracy decrease occurred at `alpha=0.1` (about **−14.58 points** averaged across epsilons); this is exploratory and does not establish certified or complete forgetting.
+- The baseline audit reports 100/100 valid tuples. The GA+KL audit reports 100/100 completed tuples. See [`docs/RESULTS.md`](docs/RESULTS.md) for interpretation and limitations.
 
-## 🌟 Phases 7–11: Scientific Validation, Baselines & Frontier Discovery
+## Important interpretation and release limits
 
-All core methodologies, established federated-unlearning baselines (including **FedEraser**), calibrated privacy audits, and execution frameworks are now implemented, tested, and validated.
+- Accuracy on the deleted client's examples is only a utility/behavior diagnostic. Lower accuracy alone does not prove unlearning.
+- Membership-inference metrics measure one specified attack and population; an AUC near 0.5 is not a general privacy guarantee.
+- Secure Aggregation is disabled in this experiment because the historical-update methods need individual client updates. The server can therefore inspect client updates.
+- Cached Reconstruction and FedEraser-style recalibration reuse historical updates/noise. The original model's DP ledger alone does not certify joint release of original and transformed models.
+- GA+retain-KL uses deleted examples and retained data after the deletion request and has no DP guarantee for that post-deletion stage.
+- Frozen DINOv2 embeddings are centrally cached. Their extraction is outside the head's DP training ledger.
+- The aggregate tables are descriptive across five seeds. They do not replace a threat-model-specific privacy analysis or a confirmatory statistical study.
 
-### 1. The Federated Unlearning Baseline Suite (Phase 9)
+For exact per-run results and logs, use the original research workspace. This package keeps only GitHub-friendly aggregate tables and audit files by default.
 
-The benchmark evaluates five distinct methods under standardized metric logging:
+## Integrity manifest
 
-1. **Exact Retrain ($M_R$)**: Retrained from scratch on retained data ($D \setminus F$) with an accountant-aligned normalizer based on retained clients. Serves as ground truth.
-2. **DP-only / No Action ($M_{DP}$)**: Unmodified pre-deletion model protected by central client-level $(\epsilon, \delta)$-DP under Poisson participation and fixed public normalization.
-3. **Retained-Data Fine-Tuning ($M_{FT}$)**: Starting from the full model, executes fine-tuning rounds exclusively on retained client data.
-4. **Cached Reconstruction ($M_{CR}$)**: Direct historical accumulation removing forgotten clients' cached parameter updates without client re-querying.
-5. **Faithful FedEraser ($M_{FE}$)**:
-   - **Historical update requirement**: Stores initial model state, round-by-round client-level updates $\Delta w_{i, t}$, and per-round Gaussian noise $Z_t$.
-   - **Interactive calibration**: In each round $t$, retained participating clients receive current unlearned model $w'_t$ and run local calibration training to compute new direction $\Delta \tilde{w}_{i, t}$.
-   - **Update calibration**: Scales the new direction vector by the historical step magnitude:
-     $$\Delta \bar{w}_{i, t} = \|\Delta w_{i, t}\|_2 \cdot \frac{\Delta \tilde{w}_{i, t}}{\|\Delta \tilde{w}_{i, t}\|_2 + 10^{-12}}$$
-   - **Reconstruction**: Calibrated updates are aggregated with central DP noise preservation and fixed public normalization.
+`SHA256SUMS` records hashes for the bundled source, configs, documentation, and aggregate result files. Verify them from this directory with:
 
-#### Comparative Baseline Profile
-
-| Baseline Method | Historical Storage | Active Client Participation | Raw Data Access at Unlearning | Runtime Overhead | DP Post-Processing? |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Exact Retrain** | 0 MB | Yes (All Retained) | Full Raw Data | Highest (~100%) | No (Internal Reference) |
-| **DP-only / No Action** | **0 MB** | **None (0%)** | **None (0%)** | **Instant (0.0s)** | **Yes (Pure Post-Processing)** |
-| **Retained Fine-Tuning** | 0 MB | Yes (Sampled Retained) | Raw Retained Data | Low (~4 rounds) | No (Accesses Raw Data) |
-| **Cached Reconstruction** | High (~76–104 MB) | None (Server-only) | None | Low (~0.1s) | No (Sensitive Server History) |
-| **Faithful FedEraser** | High (~76–104 MB) | Yes (Interactive) | Raw Retained Data | Moderate (~8s/run) | No (Interactive Raw Queries) |
-
----
-
-### 2. Calibrated Privacy Audit (Phase 8)
-
-The privacy audit in `attacks.py` evaluates:
-- **Forgotten Population**, **Retained Population**, and **Unseen Population** across all candidate models ($M_{Full}, M_{DP}, M_U, M_R$).
-- Reports **AUC**, **attack advantage**, **TPR@1% FPR**, and **TPR@0.1% FPR** with true **95% Bootstrap Confidence Intervals**.
-
----
-
-### 3. Pre-Launch Verification: 11 / 11 Checks PASSED
-
-Before initiating the full 90-run grid, the complete framework was verified across 12 validation runs ($4\text{ cells} \times 3\text{ seeds}$) on local GPU:
-
-| # | Check Item | Status | Validation Evidence |
-| :---: | :--- | :---: | :--- |
-| **1** | **CIFAR-10 Convergence** | **PASS** | Non-private control reached $32.9\%$ accuracy with `Flatten(1)` + tuned LR. |
-| **2** | **Non-Private Control Quality** | **PASS** | Clear separation between $\epsilon = \infty$ ($32.7\%$) and private $\epsilon \le 8$ ($10\text{--}12\%$). |
-| **3** | **Client-Level DP Accounting** | **PASS** | Verified ledger uses Poisson-subsampled Gaussian mechanism and fixed normalizer. |
-| **4** | **Actual Epsilon Values** | **PASS** | Exact target matches: $\epsilon = 1.999 \approx 2.0$, $\epsilon = 4.000 \approx 4.0$, $\epsilon = 7.999 \approx 8.0$. |
-| **5** | **Retrain Ensemble Correctness** | **PASS** | Multi-seed retrain ensemble ($N=3$) captures ground-truth variability quantiles ($Q_{10}, Q_{90}$). |
-| **6** | **MUB Calculations** | **PASS** | Utility, JS divergence, and MIA advantage MUB computed with 95% Bootstrap CIs. |
-| **7** | **Validity Gating** | **PASS** | `VALID`, `WARNING`, and `INVALID` flags properly assigned based on chance + offset. |
-| **8** | **Deletion Manifest Consistency** | **PASS** | SHA256-verified partition deletion manifests created and consistent. |
-| **9** | **Artifact Immutability** | **PASS** | Runs assigned deterministic immutable IDs (`cell_eps{eps}_a{alpha}_del{del}_s{seed}_{hash}`). |
-| **10** | **No Result Overwriting** | **PASS** | Resumability logic validates existing runs and skips valid directories without overwriting. |
-| **11** | **Master Aggregation of Cells** | **PASS** | All 12 validation runs aggregated into `master_results.json` and `master_summary.csv`. |
-
----
-
-### 4. Validation Subset Results & Key Scientific Finding
-
-Averaged across 3 independent seeds (`20260901`, `20260902`, `20260903`) per cell:
-
-| Cell $(\epsilon, \alpha, \text{del})$ | DP-only Acc | Retrain Acc | Retained FT Acc | FedEraser Acc | DP Forgotten MIA Adv | Retrain Forgotten MIA Adv | FT MUB Acc | FedEraser MUB Acc | Consensus Classification |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **$\epsilon=\infty, \alpha=1.0, 100\%$** | $28.4\%$ | $30.4\%$ | $31.0\%$ | $26.2\%$ | $0.085$ | $0.062$ | $+0.026$ | $-0.022$ | **UNLEARNING-BENEFICIAL** |
-| **$\epsilon=8.0, \alpha=1.0, 100\%$** | $10.3\%$ | $10.0\%$ | $11.6\%$ | $10.4\%$ | $0.055$ | $0.048$ | $+0.012$ | $+0.001$ | **REDUNDANT / TRANSITION** |
-| **$\epsilon=4.0, \alpha=0.1, 100\%$** | $10.8\%$ | $10.0\%$ | $11.2\%$ | $11.7\%$ | $0.068$ | $0.068$ | $+0.004$ | $+0.009$ | **REDUNDANT** |
-| **$\epsilon=2.0, \alpha=0.1, 100\%$** | $09.5\%$ | $09.5\%$ | $10.6\%$ | $09.7\%$ | $0.072$ | $0.082$ | $+0.011$ | $+0.002$ | **REDUNDANT** |
-
-> [!IMPORTANT]
-> **Does FedEraser remain useful under Client-Level DP?**
-> - **Non-private regime ($\epsilon = \infty$)**: FedEraser ($26.2\%$) and fine-tuning ($31.0\%$) provide clear benefits over naive cached reconstruction ($20.3\%$).
-> - **Private regime ($\epsilon \le 8.0$)**: Under client-level DP noise, **FedEraser provides NO measurable advantage over DP-only (doing nothing)** ($MUB_{acc} \approx +0.001$).
-> - Yet, FedEraser requires **$\sim 100\text{ MB}$ of sensitive server storage** per run and interactive client communication rounds that violate DP post-processing.
-> - **Conclusion**: Strong client-level DP mathematically and empirically masks client influence, rendering FedEraser redundant while avoiding its substantial storage and privacy costs.
-
----
-
-### 5. Complete 94-Run Factorial Grid Execution Results
-
-The full factorial grid ($5\epsilon \times 3\alpha \times 2\text{ del} \times 3\text{ seeds} = 30\text{ cells}$) was executed and validated ($94\text{ total runs}$, $100\%$ artifact completeness):
-
-| Privacy Regime | Total Runs | DP-Only Acc | Target Retrain Acc | Retained FT Acc | FedEraser Acc | DP Forgotten MIA Adv | Retrain Forgotten MIA Adv | FedEraser Forgotten MIA Adv | FedEraser MUB Acc | Validity Status |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **$\epsilon = \infty$ (Non-Private)** | 19 | $26.7\% \pm 2.2\%$ | $27.9\% \pm 3.2\%$ | $27.5\% \pm 3.0\%$ | $24.9\% \pm 1.8\%$ | $0.115$ | $0.087$ | $0.060$ | $-0.0184$ | `WARNING` ($25\%-40\%$) |
-| **$\epsilon = 8.0$ (Private)** | 19 | $10.6\% \pm 0.7\%$ | $09.1\% \pm 1.7\%$ | $11.4\% \pm 1.0\%$ | $10.9\% \pm 0.9\%$ | $0.093$ | $0.096$ | $0.072$ | $+0.0022$ | `INVALID` ($<25\%$) |
-| **$\epsilon = 4.0$ (Private)** | 19 | $10.8\% \pm 1.2\%$ | $10.1\% \pm 1.0\%$ | $11.2\% \pm 0.7\%$ | $10.9\% \pm 1.8\%$ | $0.082$ | $0.095$ | $0.089$ | $+0.0014$ | `INVALID` ($<25\%$) |
-| **$\epsilon = 2.0$ (Private)** | 19 | $09.9\% \pm 1.0\%$ | $09.7\% \pm 1.4\%$ | $11.0\% \pm 0.8\%$ | $09.9\% \pm 1.3\%$ | $0.094$ | $0.098$ | $0.085$ | $+0.0008$ | `INVALID` ($<25\%$) |
-| **$\epsilon = 1.0$ (Private)** | 18 | $09.7\% \pm 0.7\%$ | $09.6\% \pm 1.1\%$ | $11.3\% \pm 1.0\%$ | $09.7\% \pm 0.8\%$ | $0.088$ | $0.099$ | $0.065$ | $-0.0004$ | `INVALID` ($<25\%$) |
-
-#### Key Takeaways from the Full Grid
-1. **Unlearning Frontier Emerges at $\epsilon = \infty$**:
-   - In the non-private regime, the un-deleted model leaks forgotten membership information (MIA advantage $= 0.115$).
-   - Explicit unlearning (FedEraser and Fine-Tuning) significantly cuts MIA advantage to $0.060 - 0.087$, matching or improving upon retrain.
-   - Classification is unanimously **UNLEARNING-BENEFICIAL**.
-2. **FedEraser is Redundant Under Client-Level DP ($\epsilon \le 8.0$)**:
-   - Across all 78 private runs, FedEraser MUB is statistically centered around **$0.000$** ($+0.0008$ to $+0.0022$), providing **zero utility or privacy improvement over DP-only (doing nothing)**.
-   - Yet, FedEraser incurred **$93.7\text{ MB}$ of sensitive historical update storage** and **40 rounds of client calibration**, which violates DP post-processing.
-3. **Scientific Reality Check on DP Convergence**:
-   - Under client-level DP with 40 rounds, clipping threshold $C=1.0$, and $q=0.2$, Gaussian noise addition keeps 10-class CIFAR-10 test accuracy near the random guessing baseline ($10.0\%$).
-   - Validity gating correctly flagged all 78 private runs as `INVALID` ($< 25\%$). Reaching $\ge 40\%$ accuracy under client-level DP will require scaling client participation (e.g. $N=500, q=0.5$), higher local epochs, or pre-trained feature extractors.
-
----
-
-### 6. Executing Stress Tests & Frontier Confirmation
-
-```powershell
-# 1. Inspect grid test results and audit summary
-python scripts/check_grid_results.py
-
-# 2. Run sequential and influential client stress tests (Phase 10)
-python scripts/run_phase10_stress_tests.py
-
-# 3. Automatically detect transition cells and trigger >=10 seed confirmation (Phase 11)
-python scripts/run_phase11_frontier.py
+```bash
+sha256sum --check SHA256SUMS
 ```
 
+The explicitly requested sequential-deletion result bundle is included at `results/sequential_deletion_resnet64_eps64_alpha20_counts2_4_8_16/`. Its source run spec says `model_type: dinov2` and `backbone: dinov2_small`; the folder name and recorded model metadata differ, so use the metadata when describing this result.

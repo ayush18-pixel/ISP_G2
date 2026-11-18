@@ -1,8 +1,0 @@
-base_config: configs/phase0_synthetic_grid_base.yaml
-target_epsilons: [2.0, 8.0, inf]
-heterogeneity: [0.20, 0.85]
-deletion_client_ids: [2]
-seeds: [20260910, 20260911, 20260912, 20260913, 20260914]
-execution_order: epsilon_then_heterogeneity_then_seed
-note: Synthetic five-seed full factorial integration grid. It must never be labelled a public benchmark result.
-

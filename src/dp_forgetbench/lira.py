@@ -1,7 +1,6 @@
-"""Simplified offline LiRA (Likelihood Ratio Attack), Carlini et al. 2022.
+"""Limited example-level offline LiRA-style attack, Carlini et al. 2022.
 
-This is a genuine shadow-model membership-inference attack, meaningfully
-stronger than the loss-threshold probe in `attacks.py`. It is intentionally
+This is a shadow-model membership-inference attack. It is intentionally
 kept separate from the main Phase 0/1 pipeline in `run.py`/`evaluation.py`:
 LiRA needs many independently trained shadow models per target example and is
 too expensive to run inside every grid cell, so it is used as a targeted,
@@ -12,8 +11,8 @@ What this implements (and what it deliberately does not):
 - Offline LiRA only: shadow models are trained once, without the target
   example, and a model IN a shadow model's own training set is never scored
   against that same shadow model (no "online" per-example shadow retraining).
-- Per-example Gaussian fit to the OUT-distribution of a logit-scaled confidence
-  statistic, as in the original paper's simplified/offline variant.
+- Per-example Gaussian fits to the IN and OUT distributions of a logit-scaled
+  confidence statistic, with their log-density ratio as the membership score.
 - No global-variance pooling across examples (the paper's full method can
   pool variance across examples of similar difficulty for extra power); this
   keeps the implementation short and auditable at some cost in attack power,
@@ -54,6 +53,15 @@ def _logit_confidence(model: nn.Module, x: torch.Tensor, y: torch.Tensor) -> np.
     return phi.numpy()
 
 
+def _gaussian_log_likelihood_ratio(value: float, in_values: np.ndarray, out_values: np.ndarray) -> float:
+    """Return log p(value|IN) - log p(value|OUT) under fitted Gaussians."""
+    mean_in, std_in = float(in_values.mean()), float(in_values.std(ddof=1) + 1e-6)
+    mean_out, std_out = float(out_values.mean()), float(out_values.std(ddof=1) + 1e-6)
+    log_pdf_in = -np.log(std_in) - 0.5 * ((value - mean_in) / std_in) ** 2
+    log_pdf_out = -np.log(std_out) - 0.5 * ((value - mean_out) / std_out) ** 2
+    return float(log_pdf_in - log_pdf_out)
+
+
 @dataclass
 class LiraResult:
     """Per-example membership scores for a fixed audit set, plus attack-level ROC."""
@@ -63,6 +71,7 @@ class LiraResult:
     likelihood_ratio_score: list[float]  # higher => more evidence of membership
     n_shadow_models: int
     n_examples: int
+    scoring_fallback_examples: int = 0
 
     def auc(self) -> float:
         from sklearn.metrics import roc_auc_score
@@ -81,14 +90,15 @@ class LiraResult:
             "method": "simplified_offline_lira",
             "n_shadow_models": self.n_shadow_models,
             "n_examples": self.n_examples,
+            "scoring_fallback_examples": self.scoring_fallback_examples,
             "auc": self.auc(),
             "tpr_at_fpr_1pct": self.tpr_at_fpr(0.01),
             "tpr_at_fpr_0_1pct": self.tpr_at_fpr(0.001),
             "warning": (
-                "Simplified offline LiRA: per-example Gaussian OUT-distribution fit, "
-                "no cross-example variance pooling. Weaker than a full paper "
-                "reproduction but meaningfully stronger than the loss-threshold probe "
-                "in attacks.py. Treat as a confirmation check, not a per-seed metric."
+                "Limited example-level offline LiRA: centralized shadow models, "
+                "per-example IN/OUT Gaussian fits, no cross-example variance pooling. "
+                "It does not model the target FL/DP training algorithm and is not "
+                "client-level LiRA. Treat as exploratory."
             ),
         }
 
@@ -181,6 +191,7 @@ def run_lira_confirmation(
     n_pool = len(shadow_pool_y)
     audit_pool_positions = np.concatenate([member_idx, len(member_y) + nonmember_idx])
 
+    in_scores = {i: [] for i in range(2 * n_take)}
     out_scores = {i: [] for i in range(2 * n_take)}
     n_features = infer_n_features(shadow_pool_x)
 
@@ -197,28 +208,26 @@ def run_lira_confirmation(
         )
         phi = _logit_confidence(shadow_model, audit_x, audit_y)
         for local_i, pool_position in enumerate(audit_pool_positions):
-            if not include_mask[pool_position]:
+            if include_mask[pool_position]:
+                in_scores[local_i].append(phi[local_i])
+            else:
                 out_scores[local_i].append(phi[local_i])
 
     target_phi = _logit_confidence(target_model, audit_x, audit_y)
     likelihood_ratio_score = []
+    scoring_fallback_examples = 0
     for i in range(2 * n_take):
+        in_values = np.asarray(in_scores[i])
         out_values = np.asarray(out_scores[i])
-        if len(out_values) < 2:
-            # Fall back to raw confidence if too few shadow models excluded this
-            # example; documented rather than silently biased.
-            likelihood_ratio_score.append(float(target_phi[i]))
+        if len(in_values) < 2 or len(out_values) < 2:
+            # A Gaussian fit is unstable with fewer than two observations per
+            # class. Assign neutral evidence and report the fallback count.
+            likelihood_ratio_score.append(0.0)
+            scoring_fallback_examples += 1
             continue
-        mean_out, std_out = float(out_values.mean()), float(out_values.std(ddof=1) + 1e-6)
-        # Offline LiRA score: higher target confidence relative to the fitted
-        # OUT-only Gaussian is stronger membership evidence. This is exactly
-        # `-log N(target_phi | mean_out, std_out)` up to an additive constant
-        # that does not depend on the example, so it preserves the correct AUC
-        # ranking versus the paper's full likelihood-ratio while only needing
-        # one (OUT) distribution instead of two (IN and OUT), matching this
-        # module's documented offline/simplified scope.
-        z = (target_phi[i] - mean_out) / std_out
-        likelihood_ratio_score.append(float(z))
+        likelihood_ratio_score.append(
+            _gaussian_log_likelihood_ratio(float(target_phi[i]), in_values, out_values)
+        )
 
     return LiraResult(
         example_index=list(range(2 * n_take)),
@@ -226,4 +235,5 @@ def run_lira_confirmation(
         likelihood_ratio_score=likelihood_ratio_score,
         n_shadow_models=n_shadow_models,
         n_examples=2 * n_take,
+        scoring_fallback_examples=scoring_fallback_examples,
     )

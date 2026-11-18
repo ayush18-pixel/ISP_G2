@@ -1,5 +1,0 @@
-# Install a CUDA-compatible torch/torchvision pair separately for your host.
-numpy==2.2.6
-PyYAML==6.0.3
-scikit-learn==1.7.2
-dp-accounting==0.6.0

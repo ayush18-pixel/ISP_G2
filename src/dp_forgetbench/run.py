@@ -138,7 +138,11 @@ def run_experiment(config: dict, config_path: Path) -> Path:
             attack_seed=seed + 30_000,
             cost=full_cost,
             assumptions="No post-deletion action taken; relies on pre-existing client-level DP guarantee.",
-            privacy_implications="Client-level DP mechanism recorded in privacy_ledger.json; no extra privacy loss or raw data access.",
+            privacy_implications=(
+                "The unchanged candidate checkpoint has the client-DP guarantee recorded in privacy_ledger.json, "
+                "under its assumptions. This metrics record also contains data-dependent evaluation and attack "
+                "statistics; those statistics are not covered by the checkpoint's DP ledger."
+            ),
         ),
         "retained_finetune_baseline": evaluate_against_target(
             candidate=unlearned_model,
@@ -172,7 +176,10 @@ def run_experiment(config: dict, config_path: Path) -> Path:
             attack_seed=seed + 30_000,
             cost=target_cost,
             assumptions="Ground truth gold-standard reference trained from scratch on retained data.",
-            privacy_implications="Internal benchmark reference; not an extra public release under the full-model ledger.",
+            privacy_implications=(
+                "Internal benchmark reference, not an additional public release under the original-model ledger. "
+                "Its own training and the data-dependent metrics require separate analysis if released."
+            ),
         ),
         "target_retrain_ensemble": [
             evaluate_against_target(
@@ -190,12 +197,16 @@ def run_experiment(config: dict, config_path: Path) -> Path:
                 attack_seed=seed + 30_000,
                 cost=c,
                 assumptions="Ensemble retrain model for quantifying retrain variability.",
-                privacy_implications="Internal benchmark reference.",
+                privacy_implications=(
+                    "Internal benchmark reference, not covered by the original-model ledger. Its own training "
+                    "and the data-dependent metrics require separate analysis if released."
+                ),
             ) for m, c in zip(target_models_ensemble, target_costs_ensemble)
         ],
     }
 
-    # Complete-client removal baselines: Cached Update Reconstruction & Faithful FedEraser
+    # Complete-client removal baselines: cached reconstruction and FedEraser-style recalibration.
+    # The latter is a research heuristic until validated against a primary implementation.
     complete_deletion_ids = {r["client_id"] for r in requests if r.get("fraction", 1.0) == 1.0}
     sec_agg_enabled = bool(privacy_config.get("secure_aggregation", False)) or bool(config.get("federated", {}).get("secure_aggregation", False))
 
@@ -203,19 +214,21 @@ def run_experiment(config: dict, config_path: Path) -> Path:
         if sec_agg_enabled:
             # Under Secure Aggregation, individual client updates were masked and never cached
             metrics["cached_update_reconstruction_baseline"] = {
-                "status": "INCOMPATIBLE_WITH_SECURE_AGGREGATION",
+                "status": "INCOMPATIBLE_WITH_PAIRWISE_MASK_SIMULATOR",
                 "incompatible": True,
                 "reason": (
-                    "Secure Aggregation cryptographically conceals individual client deltas. "
-                    "Cached Reconstruction requires plaintext per-client updates, which breaks the SecAgg threat model."
+                    "The in-process pairwise-mask simulator does not retain individual client deltas. "
+                    "Cached Reconstruction requires per-client historical updates; this path provides no "
+                    "production cryptographic Secure Aggregation guarantee."
                 ),
             }
             metrics["federated_eraser_baseline"] = {
-                "status": "INCOMPATIBLE_WITH_SECURE_AGGREGATION",
+                "status": "INCOMPATIBLE_WITH_PAIRWISE_MASK_SIMULATOR",
                 "incompatible": True,
                 "reason": (
-                    "FedEraser requires historical individual client update caching to rescale calibration directions. "
-                    "Under Secure Aggregation, individual client updates are never exposed to the server."
+                    "This FedEraser-style baseline requires per-client historical update directions, unavailable "
+                    "in the configured pairwise-mask simulator. The simulator is not production cryptographic "
+                    "Secure Aggregation."
                 ),
             }
         else:
@@ -333,30 +346,51 @@ def run_experiment(config: dict, config_path: Path) -> Path:
         "python": sys.version,
         "platform": platform.platform(),
         "torch": torch.__version__,
-        "secure_aggregation": sec_agg_enabled,
-        "audit_standard": "TC-UMIA (Fu et al., 2026) Tri-Population Privacy Audit",
+        "pairwise_mask_simulator_enabled": sec_agg_enabled,
+        "audit_standard": "custom tri-population pre/post feature probe; not a validated paper reproduction",
         "limitations": [
             dataset_scope,
             "Fine-tuning accesses retained raw data and is not DP post-processing.",
-            "Tri-population unlearning audit complies with TC-UMIA (Fu et al., 2026) multi-feature protocol.",
+            "Tri-population audit is a custom diagnostic with example-level random splitting; it is not a validated TC-UMIA reproduction.",
             (
-                "Pairwise zero-sum Secure Aggregation active: individual client updates cryptographically concealed."
+                "In-process pairwise-mask simulator enabled; no cryptographic confidentiality guarantee."
                 if sec_agg_enabled
-                else "Secure Aggregation inactive: server observes individual clipped client deltas."
+                else "Mask simulator inactive: training process observes individual clipped client deltas."
             ),
         ],
         "method_privacy_class": {
             "full_model": "pre-deletion model trained on all clients",
-            "dp_only_no_action": "final-model client-DP mechanism as recorded in privacy_ledger.json; compatible with SecAgg",
-            "retained_finetune_baseline": "accesses retained raw data after request; compatible with SecAgg",
-            "target_retrain": "internal retained-data retrain reference; compatible with SecAgg",
+            "dp_only_no_action": "final-model client-DP mechanism as recorded in privacy_ledger.json; pairwise-mask simulator can be enabled separately",
+            "retained_finetune_baseline": "accesses retained raw data after request; pairwise-mask simulator can be enabled separately",
+            "target_retrain": "internal retained-data retrain reference; pairwise-mask simulator can be enabled separately",
             "cached_update_reconstruction_baseline": (
-                "incompatible with SecAgg" if sec_agg_enabled
+                "incompatible with pairwise-mask simulator history mode" if sec_agg_enabled
                 else "uses sensitive per-client server update history; direct accumulation; not DP post-processing"
             ),
             "federated_eraser_baseline": (
-                "incompatible with SecAgg" if sec_agg_enabled
-                else "faithful FedEraser algorithm; requires stored historical updates and client calibration training; not DP post-processing"
+                "incompatible with pairwise-mask simulator history mode" if sec_agg_enabled
+                else "FedEraser-style historical recalibration baseline; requires sensitive historical updates and client calibration training; fidelity and DP protection are unverified"
+            ),
+        },
+        "release_audit": {
+            "model_checkpoint": (
+                "The original model's client-DP ledger applies to its sequence of noised aggregate outputs and "
+                "checkpoints derived from that same trajectory under the ledger's sampling, adjacency, clipping, "
+                "noise, denominator, and round-count assumptions, provided sampled-client identities and "
+                "plaintext individual updates are not released. Independently trained models require composition."
+            ),
+            "metrics_json": (
+                "Contains data-dependent forgotten/retained utility, membership-inference outputs, "
+                "tri-population probe outputs, and model-alignment metrics. These values are not covered by "
+                "the model-training ledger; treat this file as internal unless separately reviewed or privatized."
+            ),
+            "server_history": (
+                "The simulator may access individual client updates and retain them in memory for reconstruction "
+                "baselines. This history is sensitive server-side state and is not made safe by the final-model ledger."
+            ),
+            "reference_models": (
+                "Retrain and ensemble models are internal evaluation references. Releasing them requires their "
+                "own mechanism and composition analysis."
             ),
         },
     }
@@ -468,6 +502,24 @@ def run_sequence_experiment(config: dict, config_path: Path) -> Path:
             "No secure aggregation service, certified unlearning, LiRA/A-LiRA, or TC-UMIA reproduction is implemented.",
             "Each target retrain is an internal reference and not an additional public model release.",
         ],
+        "release_audit": {
+            "model_checkpoint": (
+                "The original model's client-DP ledger applies only under the ledger's stated assumptions."
+            ),
+            "sequence_metrics_json": (
+                "Contains data-dependent forgotten/retained utility, membership-inference outputs, and "
+                "alignment metrics at every request prefix. These outputs are not covered by the original "
+                "model ledger; treat as internal unless separately reviewed or privatized."
+            ),
+            "reference_models": (
+                "Each retained-cohort retrain is an internal reference. Any released reference or derived "
+                "metric requires separate privacy and composition analysis."
+            ),
+            "fine_tuning": (
+                "The stateful fine-tuning path accesses retained raw client data after each request and is "
+                "not post-processing of the original DP model."
+            ),
+        },
     }
     _save_json(run_dir / "sequence_metrics.json", {"steps": sequence_metrics})
     _save_json(run_dir / "privacy_ledger.json", ledger.as_dict())

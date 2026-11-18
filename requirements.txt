@@ -1,10 +1,5 @@
-numpy>=2.0
-PyYAML>=6.0
-torch>=2.6
-torchvision>=0.21
-scikit-learn>=1.5
+# Install a CUDA-compatible torch/torchvision pair separately for your host.
+numpy==2.2.6
+PyYAML==6.0.3
+scikit-learn==1.7.2
 dp-accounting==0.6.0
-Markdown>=3.7
-reportlab==5.0.1
-pytest>=8.0
-

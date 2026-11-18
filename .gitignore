@@ -1,10 +1,25 @@
+# Local data, downloaded backbones, embeddings, checkpoints, logs, and detailed runs
 .venv/
+data/
+.cache/
 __pycache__/
 *.py[cod]
-.pytest_cache/
-partitions/generated/*
-!partitions/generated/.gitkeep
-reports/*.pdf
-!reports/.gitkeep
-data/
-scratch/
+*.pt
+*.pth
+*.log
+results/dinov2_single_deletion_full_metrics/feature_cache.pt
+results/dinov2_single_deletion_full_metrics/feature_cache.metadata.json
+results/dinov2_single_deletion_nonsecagg_full_metrics/alpha*/
+results/ga_retain_kl_single_deletion_nonsecagg_l100_s20/alpha*/
+results/**/*.json.tmp
+# Keep the small audited aggregate tables and receipts tracked.
+!results/baseline_nonsecagg/summary_by_alpha_epsilon.csv
+!results/baseline_nonsecagg/summary_per_seed.csv
+!results/baseline_nonsecagg/grid_audit.json
+!results/ga_retain_kl/summary_by_alpha_epsilon.csv
+!results/ga_retain_kl/summary_per_seed.csv
+!results/ga_retain_kl/grid_audit.json
+
+# Explicitly requested sequential-deletion result bundle (keep its full files).
+!results/sequential_deletion_resnet64_eps64_alpha20_counts2_4_8_16/
+!results/sequential_deletion_resnet64_eps64_alpha20_counts2_4_8_16/**

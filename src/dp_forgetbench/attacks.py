@@ -43,6 +43,7 @@ def _balanced_binary_groups(
     unseen_x: torch.Tensor,
     unseen_y: torch.Tensor,
     limit_per_class: int = 100,
+    seed: int = 42,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """Match membership populations by label before calculating attack scores.
 
@@ -52,6 +53,7 @@ def _balanced_binary_groups(
     data instead of raising, which is why this is derived from the data.
     """
     labels_present = torch.unique(torch.cat([member_y, unseen_y])).tolist()
+    rng = np.random.default_rng(seed)
     member_indices, unseen_indices = [], []
     for label in labels_present:
         m = torch.where(member_y == label)[0]
@@ -59,8 +61,8 @@ def _balanced_binary_groups(
         take = min(len(m), len(u), limit_per_class)
         if take == 0:
             continue
-        member_indices.append(m[:take])
-        unseen_indices.append(u[:take])
+        member_indices.append(torch.as_tensor(rng.choice(m.numpy(), size=take, replace=False)))
+        unseen_indices.append(torch.as_tensor(rng.choice(u.numpy(), size=take, replace=False)))
     if not member_indices:
         raise ValueError("Attack populations do not have overlapping label support.")
     member_idx = torch.cat(member_indices)
@@ -124,7 +126,9 @@ def loss_membership_probe(
     evaluation split. This prevents selecting the best threshold and evaluating
     it on the same examples.
     """
-    mx, my, ux, uy = _balanced_binary_groups(member_x, member_y, unseen_x, unseen_y)
+    mx, my, ux, uy = _balanced_binary_groups(
+        member_x, member_y, unseen_x, unseen_y, seed=seed
+    )
     # Lower loss means stronger membership evidence.
     scores = np.concatenate([-per_sample_loss(model, mx, my), -per_sample_loss(model, ux, uy)])
     labels = np.concatenate([np.ones(len(mx), dtype=int), np.zeros(len(ux), dtype=int)])
@@ -174,6 +178,7 @@ def loss_membership_probe(
         "threshold_selection": "maximum TPR-FPR on calibration split, applied once to held-out evaluation split",
         "score_definition": "negative per-example cross-entropy loss; higher means more member-like",
         "population_definition": "label-matched member population versus label-matched unseen population",
+        "population_sampling": "seeded, without replacement within each label",
     }
 
 
@@ -187,7 +192,7 @@ def _extract_tc_umia_features(
     x: torch.Tensor,
     y: torch.Tensor,
 ) -> np.ndarray:
-    """Extract 14-dimensional TC-UMIA (Fu et al., 2026) features per example.
+    """Extract a custom 14-dimensional pre/post tri-population feature vector.
 
     Fu et al. show that machine unlearning induces distinctive shifts across
     prediction probabilities, entropy, confidence margins, and loss distributions.
@@ -286,7 +291,7 @@ def tri_population_probe(
     populations: Mapping[str, tuple[torch.Tensor, torch.Tensor]],
     seed: int,
 ) -> dict:
-    """Full TC-UMIA (Fu et al., 2026) tri-population audit distinguishing forget, retain, and unseen populations.
+    """Custom tri-population probe distinguishing forget, retain, and unseen examples.
 
     Extracts a 14-dimensional feature vector across prediction losses, probability
     deltas, predictive entropy, confidence margins, and total variation distance.
@@ -298,13 +303,45 @@ def tri_population_probe(
     names = ("forget", "retain", "unseen")
     if set(populations) != set(names):
         raise ValueError(f"Expected exactly {names} populations.")
-    limit = min(len(populations[name][1]) for name in names)
-    if limit < 12:
-        raise ValueError("Need at least 12 examples in each tri-class population.")
+    population_labels = {
+        name: populations[name][1].detach().cpu().numpy().reshape(-1)
+        for name in names
+    }
+    common_labels = sorted(
+        set.intersection(*(set(np.unique(population_labels[name]).tolist()) for name in names))
+    )
+    rng = np.random.default_rng(seed)
+    selected: dict[str, tuple[torch.Tensor, torch.Tensor]] = {}
+    class_counts: dict[str, int] = {}
+    selected_indices: dict[str, list[int]] = {name: [] for name in names}
+    for label in common_labels:
+        candidates = {
+            name: np.flatnonzero(population_labels[name] == label)
+            for name in names
+        }
+        take = min(len(candidates[name]) for name in names)
+        if take == 0:
+            continue
+        class_counts[str(label)] = int(take)
+        for name in names:
+            selected_indices[name].extend(
+                rng.choice(candidates[name], size=take, replace=False).tolist()
+            )
+    limit = sum(class_counts.values())
+    if limit < 2:
+        raise ValueError(
+            "The forget, retain, and unseen populations need at least two "
+            "label-matched examples each for a stratified train/evaluation split."
+        )
+    for name in names:
+        x, y = populations[name]
+        idx = torch.as_tensor(selected_indices[name], dtype=torch.long)
+        selected[name] = (x[idx], y[idx])
+
     features, labels = [], []
     for class_id, name in enumerate(names):
-        x, y = populations[name]
-        features.append(_extract_tc_umia_features(pre_model, post_model, x[:limit], y[:limit]))
+        x, y = selected[name]
+        features.append(_extract_tc_umia_features(pre_model, post_model, x, y))
         labels.append(np.full(limit, class_id, dtype=int))
     x_all = np.concatenate(features)
     y_all = np.concatenate(labels)
@@ -312,6 +349,13 @@ def tri_population_probe(
     x_train, x_eval, y_train, y_eval = train_test_split(
         x_all, y_all, test_size=0.5, random_state=seed, stratify=y_all
     )
+    split_population_counts = {
+        name: {
+            "train": int(np.sum(y_train == class_id)),
+            "evaluation": int(np.sum(y_eval == class_id)),
+        }
+        for class_id, name in enumerate(names)
+    }
 
     # Scale features for numerical stability
     scaler = StandardScaler()
@@ -392,7 +436,7 @@ def tri_population_probe(
     cm_norm = (cm.astype(float) / np.maximum(cm.sum(axis=1, keepdims=True), 1)).tolist()
 
     return {
-        "audit_standard": "TC-UMIA (Fu et al., 2026) Tri-Population Privacy Audit",
+        "audit_standard": "custom_tri_population_pre_post_probe",
         "probe_accuracy": float((predicted == y_eval).mean()),
         "macro_ovr_auc": float(roc_auc_score(y_eval, probabilities, multi_class="ovr", average="macro")),
         "probe_accuracy_ci_95": _ci(bootstrap_accuracy),
@@ -405,11 +449,14 @@ def tri_population_probe(
         "forget_vs_unseen_auc": forget_vs_unseen_auc,
         "retained_vs_unseen_auc": retained_vs_unseen_auc,
         "examples_per_population": int(limit),
+        "shared_class_counts_per_population": class_counts,
+        "population_sampling": "seeded, without replacement; equal counts per label on shared class support",
         "train_examples_per_population": int(limit // 2),
         "eval_examples_per_population": int(limit - limit // 2),
+        "split_population_counts": split_population_counts,
         "population_labels": {"0": "forget", "1": "retain", "2": "unseen"},
         "feature_definition": (
-            "TC-UMIA 14-dim feature vector: [pre_loss, post_loss, loss_delta, loss_ratio, "
+            "Custom 14-dim feature vector: [pre_loss, post_loss, loss_delta, loss_ratio, "
             "pre_prob_true, post_prob_true, prob_delta, pre_entropy, post_entropy, "
             "entropy_delta, pre_margin, post_margin, margin_delta, total_variation]"
         ),

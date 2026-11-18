@@ -1,9 +1,0 @@
-{
-  "runs": [
-    "results\\phase0_toy_client_dp_20260824T111942Z_seed20260824",
-    "results\\phase0_toy_client_dp_20260824T111945Z_seed20260825",
-    "results\\phase0_toy_client_dp_20260824T111947Z_seed20260826",
-    "results\\phase0_toy_client_dp_20260824T111948Z_seed20260827",
-    "results\\phase0_toy_client_dp_20260824T111949Z_seed20260828"
-  ]
-}

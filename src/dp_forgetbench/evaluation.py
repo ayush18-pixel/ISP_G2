@@ -44,15 +44,16 @@ def js_divergence_to_target(candidate: nn.Module, target: nn.Module, x: torch.Te
 import numpy as np
 
 
-def compute_bootstrap_ci(data, stat_func, n_bootstraps=500, ci_level=0.95):
-    """Computes bootstrap confidence intervals for a given statistic."""
+def compute_bootstrap_ci(data, stat_func, n_bootstraps=500, ci_level=0.95, seed=0):
+    """Compute a reproducible percentile bootstrap interval for a statistic."""
     data = np.array(data)
     n = len(data)
     if n == 0:
         return 0.0, (0.0, 0.0)
+    rng = np.random.default_rng(seed)
     boot_stats = []
     for _ in range(n_bootstraps):
-        sample = np.random.choice(data, size=n, replace=True)
+        sample = rng.choice(data, size=n, replace=True)
         boot_stats.append(stat_func(sample))
     lower_percentile = (1 - ci_level) / 2 * 100
     upper_percentile = (1 + ci_level) / 2 * 100
@@ -67,7 +68,7 @@ def compute_method_mub(
     all_retrain_metrics: list[dict],
     equivalence_margin: float = 0.02,
 ) -> dict:
-    """Compute Marginal Unlearning Benefit (MUB) and 4-way redundancy classification."""
+    """Compute exploratory MUB diagnostics; do not treat heuristic labels as verdicts."""
     dp_acc = dp_metrics["test"]["accuracy"]
     u_acc = candidate_metrics["test"]["accuracy"]
     retrain_accs = [m["test"]["accuracy"] for m in all_retrain_metrics]
@@ -103,13 +104,13 @@ def compute_method_mub(
     unlearning_is_harmful = bool(mub_acc < -equivalence_margin or mub_mia_point < -equivalence_margin)
 
     if dp_is_redundant_base and not unlearning_adds_benefit and not unlearning_is_harmful:
-        classification = "REDUNDANT"
+        exploratory_classification = "REDUNDANT"
     elif unlearning_adds_benefit:
-        classification = "UNLEARNING-BENEFICIAL"
+        exploratory_classification = "UNLEARNING-BENEFICIAL"
     elif unlearning_is_harmful:
-        classification = "UNLEARNING-HARMFUL"
+        exploratory_classification = "UNLEARNING-HARMFUL"
     else:
-        classification = "INCONCLUSIVE"
+        exploratory_classification = "INCONCLUSIVE"
 
     return {
         "mub_test_accuracy": round(mub_acc, 5),
@@ -118,7 +119,13 @@ def compute_method_mub(
         "mub_mia_ci_95": [round(mub_mia_ci[0], 5), round(mub_mia_ci[1], 5)],
         "retrain_variability_acc_q90": round(retrain_acc_q90, 5),
         "retrain_variability_mia_q90": round(retrain_mia_q90, 5),
-        "classification": classification,
+        "classification": "EXPLORATORY_ONLY",
+        "exploratory_heuristic_classification": exploratory_classification,
+        "classification_limit": (
+            "No confirmatory redundancy/benefit verdict: practical equivalence margins and a joint "
+            "seed-level analysis were not preregistered. The heuristic combines point deltas, retrain "
+            "quantiles, and a bootstrap over retrain references."
+        ),
     }
 
 
@@ -175,17 +182,21 @@ def evaluate_against_target(
         "forgotten_privacy": forgotten_mia,
         "retained_privacy": retained_mia,
         "unseen_privacy": tri_probe,
-        "mia_lira": {
-            "loss_mia_advantage": forgotten_mia["advantage"],
-            "loss_mia_auc": forgotten_mia["auc"],
-            "loss_mia_tpr_1pct_fpr": forgotten_mia["tpr_at_fpr_1pct"],
-            "loss_mia_tpr_0_1pct_fpr": forgotten_mia["tpr_at_fpr_0_1pct"],
+        "loss_mia": {
+            "advantage": forgotten_mia["advantage"],
+            "auc": forgotten_mia["auc"],
+            "tpr_at_fpr_1pct": forgotten_mia["tpr_at_fpr_1pct"],
+            "tpr_at_fpr_0_1pct": forgotten_mia["tpr_at_fpr_0_1pct"],
         },
         "runtime": {
             "wall_clock_seconds": cost_dict.get("runtime_seconds", 0.0),
         },
         "communication": {
             "communicated_bytes": cost_dict.get("communicated_bytes", 0),
+            "communication_accounting_version": cost_dict.get("communication_accounting_version"),
+            "uplink_tensor_payload_bytes": cost_dict.get("uplink_tensor_payload_bytes"),
+            "downlink_tensor_payload_bytes": cost_dict.get("downlink_tensor_payload_bytes"),
+            "total_tensor_payload_bytes": cost_dict.get("total_tensor_payload_bytes"),
         },
         "historical_storage": {
             "persistent_storage_bytes": cost_dict.get("persistent_storage_bytes", 0),

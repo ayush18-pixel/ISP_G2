@@ -1,6 +1,0 @@
-numpy>=2.0
-PyYAML>=6.0
-scikit-learn>=1.5
-dp-accounting==0.6.0
-pytest>=8.0
-pandas>=2.0

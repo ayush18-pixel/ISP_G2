@@ -1,4 +1,0 @@
-Arch: original_small_groupnorm_cnn   | Eps: inf   | Mean Test Acc: 0.0860 +/- 0.0000
-Arch: original_small_groupnorm_cnn   | Eps: 8.0   | Mean Test Acc: 0.0860 +/- 0.0000
-Arch: small_groupnorm_cnn            | Eps: inf   | Mean Test Acc: 0.1680 +/- 0.0000
-Arch: small_groupnorm_cnn            | Eps: 8.0   | Mean Test Acc: 0.0880 +/- 0.0000
