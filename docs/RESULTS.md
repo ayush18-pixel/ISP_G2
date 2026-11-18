@@ -5,7 +5,7 @@
 ### Five-method baseline
 
 - Dataset: CIFAR-10, 20,000 client-training examples (100 clients × 200 examples), 500 held-out audit examples, and 10,000 test examples.
-- Feature extractor: frozen DINOv2 ViT-S/14, 384-dimensional unit-normalized embeddings.
+- Feature extractor: frozen resnet-50 ViT-S/14, 384-dimensional unit-normalized embeddings.
 - Trainable head: linear 384-to-10 classifier (3,850 parameters).
 - Federation: 100 clients, 40 rounds, 5 local epochs, local batch size 64, client sampling rate 0.5.
 - DP settings: client-update clipping norm 1, Poisson client sampling, δ=10⁻⁵; Gaussian noise calibrated per target ε. Secure Aggregation is disabled.
@@ -58,4 +58,4 @@ The tables contain aggregate diagnostics rather than raw features, predictions, 
 
 ## Additional sequential-deletion artifact
 
-The complete requested bundle is copied at `../results/sequential_deletion_resnet64_eps64_alpha20_counts2_4_8_16/`, including its run specification, aggregate JSON metrics, and logs. Its source `run_spec.json` identifies the backbone as `dinov2_small` and points its `output` field to a differently named source-results directory. The artifact folder name contains `resnet64`, but that name alone does not establish a ResNet architecture; inspect the recorded `model_type`/`backbone` fields before describing it. Files were copied without changing their contents.
+The complete requested bundle is copied at `../results/sequential_deletion_resnet-50_eps64_alpha20_counts2_4_8_16/`, including its run specification, aggregate JSON metrics, and logs. Its source `run_spec.json` identifies the backbone as `resnet-50_small` and points its `output` field to a differently named source-results directory. The artifact folder name contains `resnet-50`, but that name alone does not establish a ResNet architecture; inspect the recorded `model_type`/`backbone` fields before describing it. Files were copied without changing their contents.

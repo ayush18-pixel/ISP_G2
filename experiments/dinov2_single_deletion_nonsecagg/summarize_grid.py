@@ -12,7 +12,7 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "results/dinov2_single_deletion_nonsecagg_full_metrics"
+OUT = ROOT / "results/resnet-50_single_deletion_nonsecagg_full_metrics"
 METHODS = (
     "dp_only_no_action",
     "retained_finetune_baseline",
@@ -41,7 +41,7 @@ def finite(value, label):
 
 
 def main() -> None:
-    config = yaml.safe_load((ROOT / "experiments/dinov2_single_deletion_nonsecagg/config.yaml").read_text())
+    config = yaml.safe_load((ROOT / "experiments/resnet-50_single_deletion_nonsecagg/config.yaml").read_text())
     if config["federated"].get("secure_aggregation") or config["privacy"].get("secure_aggregation"):
         raise ValueError("non-SecAgg grid config unexpectedly enables secure aggregation")
     config_sha = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).hexdigest()

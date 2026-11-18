@@ -1,7 +1,7 @@
 experiment_name: gradient_ascent_retain_kl_single_deletion_nonsecagg_l100_s20
-base_config: experiments/dinov2_single_deletion_nonsecagg/config.yaml
+base_config: experiments/resnet-50_single_deletion_nonsecagg/config.yaml
 output_root: results/ga_retain_kl_single_deletion_nonsecagg_l100_s20
-reference_root: results/dinov2_single_deletion_nonsecagg_full_metrics
+reference_root: results/resnet-50_single_deletion_nonsecagg_full_metrics
 unlearning_steps: 20
 learning_rate: 0.05
 retain_kl_weight: 100.0

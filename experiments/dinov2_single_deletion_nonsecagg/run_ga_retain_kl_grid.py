@@ -192,7 +192,7 @@ def _run_cell(base, cfg, alpha, epsilon, seed, cache):
         "training_config_sha256": _config_sha(base),
         "method_config_sha256": signature,
         "architecture": {
-            "backbone": "facebookresearch/dinov2_vits14 frozen feature extractor",
+            "backbone": "facebookresearch/resnet-50_vits14 frozen feature extractor",
             "feature_dimension": 384,
             "head": "cosine-normalized linear classifier, 3,850 trainable parameters",
         },

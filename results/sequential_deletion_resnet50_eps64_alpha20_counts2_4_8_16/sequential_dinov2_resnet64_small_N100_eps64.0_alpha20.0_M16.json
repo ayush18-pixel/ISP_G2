@@ -113,8 +113,8 @@
   "seed_results": [
     {
       "seed": 1000,
-      "model_type": "dinov2",
-      "backbone_name": "dinov2_small",
+      "model_type": "resnet-50",
+      "backbone_name": "resnet-50_small",
       "m_dp_test_acc": 0.9038000106811523,
       "deletion_sequence": [
         40,
@@ -605,8 +605,8 @@
     },
     {
       "seed": 1077,
-      "model_type": "dinov2",
-      "backbone_name": "dinov2_small",
+      "model_type": "resnet-50",
+      "backbone_name": "resnet-50_small",
       "m_dp_test_acc": 0.9020000100135803,
       "deletion_sequence": [
         0,
@@ -1097,8 +1097,8 @@
     },
     {
       "seed": 1154,
-      "model_type": "dinov2",
-      "backbone_name": "dinov2_small",
+      "model_type": "resnet-50",
+      "backbone_name": "resnet-50_small",
       "m_dp_test_acc": 0.9128000140190125,
       "deletion_sequence": [
         79,

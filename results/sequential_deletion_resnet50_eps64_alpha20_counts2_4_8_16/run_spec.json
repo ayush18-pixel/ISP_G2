@@ -1,14 +1,14 @@
 {
   "experiment": "sequential_deletion",
-  "model_type": "dinov2",
-  "backbone": "dinov2_small",
+  "model_type": "resnet-50",
+  "backbone": "resnet-50_small",
   "dataset": "CIFAR-10",
   "clients": 100,
   "dirichlet_alpha": 20.0,
   "epsilon_target": 64.0,
   "deletion_counts": [2, 4, 8, 16],
   "seed_values": [1000, 1077, 1154],
-  "seed_selection": "same seeds as results/sequential_deletion_dinov2_eps32_alpha20",
+  "seed_selection": "same seeds as results/sequential_deletion_resnet-50_eps32_alpha20",
   "deletion_semantics": "each deletion count independently starts from the original federation/model; counts use nested prefixes of each seed's seeded client order",
   "federated_rounds": 40,
   "local_epochs": 5,
@@ -17,5 +17,5 @@
   "delta": 0.00001,
   "secure_aggregation": false,
   "device": "GPU 7",
-  "output": "results/sequential_deletion_dinov2_eps64_alpha20_counts2_4_8_16"
+  "output": "results/sequential_deletion_resnet-50_eps64_alpha20_counts2_4_8_16"
 }

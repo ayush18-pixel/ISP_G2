@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-OUT = ROOT / "results/dinov2_single_deletion_nonsecagg_full_metrics"
+OUT = ROOT / "results/resnet-50_single_deletion_nonsecagg_full_metrics"
 
 
 def rename_mia(value):

@@ -1,9 +1,9 @@
-"""Precompute CIFAR-10 DINOv2-S/14 embeddings once for the grid.
+"""Precompute CIFAR-10 resnet-50-S/14 embeddings once for the grid.
 
 Run with CUDA_VISIBLE_DEVICES set to an idle GPU. The source image tensors use
 the repository's public CIFAR-10 normalization; FrozenBackboneLinear._encode
 performs the same 224x224 resize and unit-sphere normalization as the existing
-Tier-2 DINOv2 experiment.
+Tier-2 resnet-50 experiment.
 """
 from __future__ import annotations
 
@@ -45,18 +45,18 @@ def _encode(encoder: FrozenBackboneLinear, images: torch.Tensor, batch_size: int
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-root", default=str(ROOT / "data"))
-    parser.add_argument("--output", default=str(ROOT / "results/dinov2_single_deletion_full_metrics/feature_cache.pt"))
-    parser.add_argument("--download", action="store_true", help="Download CIFAR-10 if it is not present under --data-root.")
+    parser.add_argument("--output", default=str(ROOT / "results/resnet-50_single_deletion_full_metrics/feature_cache.pt"))
+    parser.add_argument("--download", action="store_true", help="Download CIFAR-10 if it is not presnet under --data-root.")
     parser.add_argument("--batch-size", type=int, default=64)
     args = parser.parse_args()
     if not torch.cuda.is_available():
-        raise RuntimeError("DINOv2 feature extraction requires a visible CUDA GPU.")
+        raise RuntimeError("resnet-50 feature extraction requires a visible CUDA GPU.")
     device = torch.device("cuda")
     train, train_y, test, test_y = _load_cifar10_raw(args.data_root, download=args.download)
     digest = hashlib.sha256()
     for array in (train, train_y, test, test_y):
         digest.update(np.ascontiguousarray(array).view(np.uint8))
-    encoder = FrozenBackboneLinear(backbone_name="dinov2_small", num_classes=10).to(device).eval()
+    encoder = FrozenBackboneLinear(backbone_name="resnet-50_small", num_classes=10).to(device).eval()
     train_features = _encode(encoder, _image_tensor(train), args.batch_size, device)
     test_features = _encode(encoder, _image_tensor(test), args.batch_size, device)
     payload = {
@@ -66,7 +66,7 @@ def main() -> None:
         "test_labels": torch.as_tensor(test_y, dtype=torch.long),
         "metadata": {
             "dataset": "CIFAR-10",
-            "backbone": "facebookresearch/dinov2_vits14",
+            "backbone": "facebookresearch/resnet-50_vits14",
             "backbone_parameters_frozen": True,
             "feature_dim": int(train_features.shape[1]),
             "normalization": "CIFAR-10 channel mean/std, as make_cifar10_multiclass_federation",

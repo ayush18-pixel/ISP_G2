@@ -134,7 +134,7 @@ class FrozenBackboneLinear(nn.Module):
 
     def __init__(
         self,
-        backbone_name: str = "dinov2_small",
+        backbone_name: str = "resnet-50_small",
         num_classes: int = 10,
         pretrained: bool = True,
         feature_dim: int | None = None,
@@ -143,8 +143,8 @@ class FrozenBackboneLinear(nn.Module):
     ) -> None:
         super().__init__()
         self.backbone_name = backbone_name
-        self.upsample_size = upsample_size if any(k in backbone_name for k in ("dinov2", "upsample", "bit", "vit", "resnet50")) else None
-        self.use_cosine_norm = use_cosine_norm if any(k in backbone_name for k in ("dinov2", "upsample", "bit", "vit", "resnet50")) else False
+        self.upsample_size = upsample_size if any(k in backbone_name for k in ("resnet-50", "upsample", "bit", "vit", "resnet50")) else None
+        self.use_cosine_norm = use_cosine_norm if any(k in backbone_name for k in ("resnet-50", "upsample", "bit", "vit", "resnet50")) else False
         self._build_backbone(backbone_name, pretrained)
 
         # Determine feature dimension
@@ -170,9 +170,9 @@ class FrozenBackboneLinear(nn.Module):
 
     def _build_backbone(self, name: str, pretrained: bool) -> None:
         try:
-            if name in ("dinov2_small", "dinov2_vits14"):
+            if name in ("resnet-50_small", "resnet-50_vits14"):
                 import torch
-                self.backbone = torch.hub.load("facebookresearch/dinov2", "dinov2_vits14")
+                self.backbone = torch.hub.load("facebookresearch/resnet-50", "resnet-50_vits14")
                 self.upsample_size = (224, 224)
                 self.use_cosine_norm = True
             elif "bit" in name:
@@ -329,7 +329,7 @@ class Tier3FrozenNCM(nn.Module):
 
     def __init__(
         self,
-        backbone_name: str = "dinov2_small",
+        backbone_name: str = "resnet-50_small",
         num_classes: int = 10,
         pretrained: bool = True,
     ) -> None:
@@ -402,7 +402,7 @@ class Tier4FrozenLoRA(nn.Module):
 
     def __init__(
         self,
-        backbone_name: str = "dinov2_small",
+        backbone_name: str = "resnet-50_small",
         num_classes: int = 10,
         lora_rank: int = 16,
         pretrained: bool = True,
@@ -465,9 +465,9 @@ class TierSpec:
     model_factory: Callable[[], nn.Module]
 
 
-def get_tier_specs(num_classes: int = 10, backbone_name: str = "dinov2_small") -> list[TierSpec]:
+def get_tier_specs(num_classes: int = 10, backbone_name: str = "resnet-50_small") -> list[TierSpec]:
     """Return the full architecture tier ladder."""
-    dim = 384 if "dinov2" in backbone_name else (2048 if any(k in backbone_name for k in ("resnet50", "bit")) else 576)
+    dim = 384 if "resnet-50" in backbone_name else (2048 if any(k in backbone_name for k in ("resnet50", "bit")) else 576)
     trainable_t2 = dim * num_classes + num_classes
     trainable_t4 = 16 * (dim + num_classes)
     return [

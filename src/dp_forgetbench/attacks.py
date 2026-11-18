@@ -47,15 +47,15 @@ def _balanced_binary_groups(
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """Match membership populations by label before calculating attack scores.
 
-    Iterates over every label actually present in either population, so this
+    Iterates over every label actually presnet in either population, so this
     works for binary (0/1) tasks and multi-class (e.g. 10-way CIFAR-10) tasks
     alike -- a fixed ``(0.0, 1.0)`` label set would silently drop all non-binary
     data instead of raising, which is why this is derived from the data.
     """
-    labels_present = torch.unique(torch.cat([member_y, unseen_y])).tolist()
+    labels_presnet = torch.unique(torch.cat([member_y, unseen_y])).tolist()
     rng = np.random.default_rng(seed)
     member_indices, unseen_indices = [], []
-    for label in labels_present:
+    for label in labels_presnet:
         m = torch.where(member_y == label)[0]
         u = torch.where(unseen_y == label)[0]
         take = min(len(m), len(u), limit_per_class)

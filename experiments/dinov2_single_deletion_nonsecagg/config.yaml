@@ -1,7 +1,7 @@
-experiment_name: dinov2_single_deletion_nonsecagg_full_metrics
+experiment_name: resnet-50_single_deletion_nonsecagg_full_metrics
 dataset: cifar10
 dataset_root: data
-backbone: dinov2_small
+backbone: resnet-50_small
 num_classes: 10
 alpha_values: [0.1, 1, 5, 20, 100]
 epsilon_values: [8, 16, 32, 64]
@@ -37,5 +37,5 @@ unlearning:
 evaluation:
   retrain_ensemble_size: 5
 output:
-  root: results/dinov2_single_deletion_nonsecagg_full_metrics
-  feature_cache: results/dinov2_single_deletion_full_metrics/feature_cache.pt
+  root: results/resnet-50_single_deletion_nonsecagg_full_metrics
+  feature_cache: results/resnet-50_single_deletion_full_metrics/feature_cache.pt

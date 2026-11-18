@@ -1,4 +1,4 @@
-"""Full-schema single-client deletion grid on frozen DINOv2 features.
+"""Full-schema single-client deletion grid on frozen resnet-50 features.
 
 Each alpha/epsilon/seed tuple is an independent experiment from the original
 100-client federation. Outputs preserve the standard Phase-2 metrics.json
@@ -279,7 +279,7 @@ def _run_one(config: dict, config_path: Path, alpha: float, epsilon: float, seed
     metrics = {
         "dp_only_no_action": evaluate_against_target(
             candidate=full_model, cost=full_cost, **common,
-            assumptions="No post-deletion action; DINOv2-S/14 frozen features with a client-DP-trained cosine linear head.",
+            assumptions="No post-deletion action; resnet-50-S/14 frozen features with a client-DP-trained cosine linear head.",
             privacy_implications="Head checkpoint is covered by its recorded client-DP ledger under stated assumptions. Feature extraction is fixed and frozen. Data-dependent metrics are not covered by the model ledger.",
         ),
         "retained_finetune_baseline": evaluate_against_target(
@@ -346,7 +346,7 @@ def _run_one(config: dict, config_path: Path, alpha: float, epsilon: float, seed
         "deletion_requests": [{"client_id": deletion_cfg["client_id"], "fraction": deletion_cfg["fraction"], "request_index": 0}],
         "partition": federation.partition_manifest,
         "architecture": {
-            "backbone": "facebookresearch/dinov2_vits14",
+            "backbone": "facebookresearch/resnet-50_vits14",
             "backbone_frozen": True,
             "feature_dimension": 384,
             "head": "cosine-normalized linear classifier, 3,850 trainable parameters",
@@ -355,7 +355,7 @@ def _run_one(config: dict, config_path: Path, alpha: float, epsilon: float, seed
         "effective_privacy_config": privacy,
         "reference_privacy_config": target_privacy,
         "limitations": [
-            "Exploratory frozen-feature client-head experiment; it does not unlearn or retrain the DINOv2 backbone.",
+            "Exploratory frozen-feature client-head experiment; it does not unlearn or retrain the resnet-50 backbone.",
             "Secure Aggregation is disabled for this run to make individual client update histories available to the two historical-update unlearning methods; the server can observe per-client updates.",
             "Cached Reconstruction and FedEraser reuse stored per-round noise. Joint release of the original and unlearned checkpoints is not certified by the original training ledger alone.",
             "The metrics file contains data-dependent privacy/utility diagnostics not covered by the model-training ledger.",
@@ -363,7 +363,7 @@ def _run_one(config: dict, config_path: Path, alpha: float, epsilon: float, seed
             "Fine-tuning uses retained data and is non-private, matching the existing reference runner semantics.",
             "The tri-population probe is a custom diagnostic, not a validated TC-UMIA reproduction.",
         ],
-        "validity_status": "EXPLORATORY_DINOV2_FEATURE_HEAD",
+        "validity_status": "EXPLORATORY_resnet-50_FEATURE_HEAD",
         "created_utc": datetime.now(timezone.utc).isoformat(),
     }
     tmp_metrics = metrics_path.with_suffix(".json.tmp")
